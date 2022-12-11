@@ -41,7 +41,7 @@ constexpr inline uint StringToHash(const char* str, uint hash = 0)
 constexpr inline uint PathToHash(const char* str)
 {
     uint hash = 0u, idx = 0u, shift = 0u;
-    while (str[idx] && idx < 8u) // && *str != '\n' && !IsWhitespace(*str)
+    while (str[idx] && idx < 4u) // && *str != '\n' && !IsWhitespace(*str)
         hash |= uint(str[idx]) << shift, shift += 8u, idx++;
     return StringToHash(str + idx, WangHash(hash));
 }
