@@ -303,7 +303,7 @@ int Day6()
     while (*curr && numUnique != 4u)
     {
         // remove last
-        char lastChar = lastFour[lastIdx++ & 7]; // 'i & 7 = i % 7' find's last visited character = visited[curr - 4]
+        char lastChar = lastFour[lastIdx++ & 7]; // 'i & 7 = i % 8' find's last visited character = visited[curr - 4]
         if (charMap[lastChar] > 1) charMap[lastChar]--; // decrease amount if we have more character's inside
         else if (charMap[lastChar] == 1) numUnique--, charMap[lastChar]--; // if is this last exist character in the map, we reduce num of unique
 
