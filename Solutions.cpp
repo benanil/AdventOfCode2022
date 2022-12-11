@@ -86,7 +86,7 @@ int Day()
     while (*curr != -1 && *curr)
     {
         int value = 0, total = 0;
-        // parse, and accumulate elves values
+        // parse, and accumulate elf values
         while (IsNumber(*curr))
         {
             while (IsNumber(*curr))
@@ -97,7 +97,7 @@ int Day()
             curr += *curr == '\n';
         }
 
-        while (IsWhitespace(*curr)) curr++;
+        while (IsWhitespace(*curr)) curr++; // skip white space and new line
         curr += *curr == '\n';
         maxElf = Max(maxElf, total); // find maximum elf
     }
@@ -115,7 +115,7 @@ int Day2()
     // parse each line
     while (*curr)
     {
-        // char to rock paper scisor conversation
+        // char to rock paper scisor conversation, 'A'-'C' to 0, 2
         int opponent = *curr++ - 'A'; curr++;
         int ourself  = *curr++ - 'X'; curr++;
 
@@ -148,7 +148,7 @@ int Day3()
         
         // parse first half of text. existanceMap.insert(line[i]);
         for (; i < (n / 2); ++i) existanceMap |= 1ull << (line[i] - 'A');
-        // find same character index in second part,  if (existanceMap.find(line[i]);)
+        // find same character index in second part,  if (existanceMap.find(line[i]))
         while(i < n)
             if (existanceMap & (1ull << (line[i++] - 'A'))) break; 
 
@@ -165,7 +165,8 @@ int Day3Part2()
     FILE* file = fopen(fileName, "r");
     char line[128] = { 0 };
     int prioritySum = 0;
-
+    // parse 3 line until end of file
+    // recommended ascii table for better understanding.
     while (fgets(line, sizeof(line), file)) // read first line
     {
         // 64bit mask's for upper-lower case characters, same as unordered_set<char>
@@ -173,7 +174,10 @@ int Day3Part2()
 
         const char* curr = line;
         // create first line's mask
-        while (*curr != '\n') amask |= 1ull << (*curr++ - 'A');  
+        // -'A' because we will map characters into 64bit.
+        // imagine something like this: 101010111111100000001010101111000010101111
+        //              upper case start^       lower case start^
+        while (*curr != '\n') amask |= 1ull << (*curr++ - 'A');    
 
         fgets(line, sizeof(line), file); curr = line; // read second line
         while (*curr != '\n') bmask |= 1ull << (*curr++ - 'A');
@@ -183,7 +187,8 @@ int Day3Part2()
 
         uint64 intersection = amask & bmask & cmask; // set intersection
 
-        uint64 tzcnt = _tzcnt_u64(intersection); // __builtin_ctz, detect intersection index
+        // detect intersection index, if upper case range will be: 0 <= x <= 26. if lower case int('a' - 'A') <= x < 64
+        uint64 tzcnt = _tzcnt_u64(intersection); // __builtin_ctz, returns intersection bit index, only one index is common in this 3 line
         /* if upper case*/
         if (tzcnt < 30) prioritySum += tzcnt + 27; 
         else prioritySum += tzcnt - ('a' - 'A') + 1; // convert 'a'-'z' to 0-26
@@ -257,7 +262,7 @@ int Day5()
         char amount = 0, from = 0, to = 0;
         //sscanf(line, "move %i from %i to %i", &amount, &from, &to);
         const char* curr = line + 5;
-        // atoi, parse line, amount and to.
+        // atoi. parse line, amount and to.
         while (*curr != ' ') amount = amount * 10 + (*curr++ - '0'); curr += 6; // +6 for seeking begining of the from index: strlen(' from ')
         while (*curr != ' ') from   = from   * 10 + (*curr++ - '0'); curr += 4; // +4 for seeking begining of the to index: strlen(' to ')
         while (*curr && *curr != '\n') to = to * 10 + (*curr++ - '0');
