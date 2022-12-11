@@ -83,10 +83,10 @@ int Day()
 
     char* curr = text;
     int maxElf = 0;
-    while (*curr != -1 && *curr != 0)
+    while (*curr != -1 && *curr)
     {
         int value = 0, total = 0;
-
+        // parse, and accumulate elves values
         while (IsNumber(*curr))
         {
             while (IsNumber(*curr))
@@ -99,7 +99,7 @@ int Day()
 
         while (IsWhitespace(*curr)) curr++;
         curr += *curr == '\n';
-        maxElf = Max(maxElf, total);
+        maxElf = Max(maxElf, total); // find maximum elf
     }
     printf("max elf: %d", maxElf);
     free(text);
@@ -112,20 +112,21 @@ int Day2()
     char* curr = text;
 
     int ourScore = 0;
-
+    // parse each line
     while (*curr)
     {
+        // char to rock paper scisor conversation
         int opponent = *curr++ - 'A'; curr++;
-        int ourself = *curr++ - 'X'; curr++;
+        int ourself  = *curr++ - 'X'; curr++;
 
         enum { Rock, Paper, Scisor };
         int weWin = ourself == Rock && opponent == Scisor;
         weWin |= (ourself == Paper && opponent == Rock);
         weWin |= (ourself == Scisor && opponent == Paper);
 
-        ourScore += (opponent == ourself) * 3;
-        ourScore += weWin * 6 + ourself + 1;
-
+        ourScore += (opponent == ourself) * 3; // +3 if same 
+        ourScore += weWin * 6 + ourself + 1; // +6 for win, +ourHand, +1 for 0 indexed
+        // skip whitespace
         while (IsWhitespace(*curr) || *curr == '\n') curr++;
     }
 
@@ -142,13 +143,16 @@ int Day3()
 
     while (fgets(line, sizeof(line), file))
     {
-        uint64 existanceMap = 0ull;
+        uint64 existanceMap = 0ull; // we will use this as unordered_set<char>, or bitset
         size_t i = 0, n = strlen(line);
-
+        
+        // parse first half of text. existanceMap.insert(line[i]);
         for (; i < (n / 2); ++i) existanceMap |= 1ull << (line[i] - 'A');
-        for (; i < n; ++i)   if (existanceMap & (1ull << (line[i] - 'A'))) break;
+        // find same character index in second part,  if (existanceMap.find(line[i]);)
+        while(i < n)
+            if (existanceMap & (1ull << (line[i++] - 'A'))) break; 
 
-        prioritySum += line[i] <= 'Z' ? line[i] - 'A' + 27 : line[i] - 'a' + 1;
+        prioritySum += line[i] <= 'Z' ? line[i] - 'A' + 27 : line[i] - 'a' + 1; // convert character to point ve earn
     }
     fclose(file);
     printf("prioritySum: %d", prioritySum);
@@ -162,25 +166,27 @@ int Day3Part2()
     char line[128] = { 0 };
     int prioritySum = 0;
 
-    while (fgets(line, sizeof(line), file))
+    while (fgets(line, sizeof(line), file)) // read first line
     {
-        uint64 amask = 0u, bmask = 0u, cmask = 0u;
+        // 64bit mask's for upper-lower case characters, same as unordered_set<char>
+        uint64 amask = 0u, bmask = 0u, cmask = 0u; 
 
         const char* curr = line;
-        while (*curr != '\n') amask |= 1ull << (*curr++ - 'A');
+        // create first line's mask
+        while (*curr != '\n') amask |= 1ull << (*curr++ - 'A');  
 
-        fgets(line, sizeof(line), file); curr = line;
+        fgets(line, sizeof(line), file); curr = line; // read second line
         while (*curr != '\n') bmask |= 1ull << (*curr++ - 'A');
 
-        fgets(line, sizeof(line), file); curr = line;
-        while (*curr != '\n') cmask |= 1ull << (*curr++ - 'A');
+        fgets(line, sizeof(line), file); curr = line; // read third line
+        while (*curr != '\n') cmask |= 1ull << (*curr++ - 'A'); 
 
-        uint64 intersection = amask & bmask & cmask;
+        uint64 intersection = amask & bmask & cmask; // set intersection
 
-        uint64 tzcnt = _tzcnt_u64(intersection); // __builtin_ctz 
-
-        if (tzcnt < 30) prioritySum += tzcnt + 27;
-        else            prioritySum += tzcnt - ('a' - 'A') + 1;
+        uint64 tzcnt = _tzcnt_u64(intersection); // __builtin_ctz, detect intersection index
+        /* if upper case*/
+        if (tzcnt < 30) prioritySum += tzcnt + 27; 
+        else prioritySum += tzcnt - ('a' - 'A') + 1; // convert 'a'-'z' to 0-26
     }
 
     fclose(file);
@@ -222,11 +228,11 @@ int Day5()
     FILE* file = fopen("Assets/AOC5.txt", "r");
 
     char line[64];
-    char stacks[10][64] = { 0 }; // we can easily increase number of stacks here
+    char stacks[10][64] = { 0 }; // if input has more than 10 group, we can easily increase number of stacks here
     char numPacks[10] = { 0 };
 
     char numStacks = 0;
-
+    // parse each group of box column's
     while (fgets(line, sizeof(line), file))
     {
         if (line[1] == '1') break;
@@ -234,30 +240,30 @@ int Day5()
 
         for (char i = 1; i < len; i += 4, stackIndex++)
         {
-            if (line[i] <= 'Z' && line[i] >= 'A')
+            if (line[i] <= 'Z' && line[i] >= 'A') // is character and not whitespace?
                 stacks[stackIndex][numPacks[stackIndex]++] = line[i];
         }
         numStacks = Max(stackIndex, numStacks);
     }
-    // reverse stacks
-    for (char i = 0; i < numStacks; ++i)
+    // reverse each stack, because we parsed reversly
+    for (char i = 0; i < numStacks; ++i) 
         for (char j = 0, k = numPacks[i] - 1; j < k; j++, --k)
             Swap(stacks[i][j], stacks[i][k]);
 
-    fgets(line, sizeof(line), file);
+    fgets(line, sizeof(line), file); // parse empty line that seperates stacks and commands
 
-    while (fgets(line, sizeof(line), file))
+    while (fgets(line, sizeof(line), file)) // read each line
     {
         char amount = 0, from = 0, to = 0;
         //sscanf(line, "move %i from %i to %i", &amount, &from, &to);
         const char* curr = line + 5;
-        while (*curr != ' ') amount = amount * 10 + (*curr++ - '0'); curr += 6;
-
-        while (*curr != ' ') from = from * 10 + (*curr++ - '0'); curr += 4;
-
+        // atoi, parse line, amount and to.
+        while (*curr != ' ') amount = amount * 10 + (*curr++ - '0'); curr += 6; // +6 for seeking begining of the from index: strlen(' from ')
+        while (*curr != ' ') from   = from   * 10 + (*curr++ - '0'); curr += 4; // +4 for seeking begining of the to index: strlen(' to ')
         while (*curr && *curr != '\n') to = to * 10 + (*curr++ - '0');
 
         from--, to--; // decrese because 1 indexed
+        // move from to to by amount
 #ifdef PART1
         for (int i = 0; i < amount; ++i) {
             stacks[to][numPacks[to]++] = stacks[from][--numPacks[from]];
@@ -271,7 +277,7 @@ int Day5()
 #endif
     }
 
-    // collect top blocks
+    // collect top blocks, I will use line as result text
     for (char i = 0; i < numStacks; ++i) {
         line[i] = stacks[i][numPacks[i] - 1];
     }
@@ -287,22 +293,24 @@ int Day6()
     const char* curr = text;
 
     unsigned numSignals = 0u, numUnique = 0u;
-    char charMap[28] = { 0 };
-    char lastFour[8] = { 27, 27, 27, 27, 27, 27, 27, 27 };
+    char charMap[28] = { 0 }; // unordered_set<char> 
+    // ring buffer that keeps track of currently visited characters 
+    char lastFour[8] = { 27, 27, 27, 27, 27, 27, 27, 27 }; 
+    //                   ^curFour         ^lastidx
     char curFour = 4, lastIdx = 0;
 
     // sliding window aproach
     while (*curr && numUnique != 4u)
     {
         // remove last
-        char lastChar = lastFour[lastIdx++ & 7];
-        if (charMap[lastChar] > 1) charMap[lastChar]--;
-        else if (charMap[lastChar] == 1) numUnique--, charMap[lastChar]--;
+        char lastChar = lastFour[lastIdx++ & 7]; // 'i & 7 = i % 7' find's last visited character = visited[curr - 4]
+        if (charMap[lastChar] > 1) charMap[lastChar]--; // decrease amount if we have more character's inside
+        else if (charMap[lastChar] == 1) numUnique--, charMap[lastChar]--; // if is this last exist character in the map, we reduce num of unique
 
         // read new character
         char newChar = *curr++ - 'a';
-        if (charMap[newChar] == 0) numUnique++;
-        lastFour[curFour++ & 7] = newChar;
+        if (charMap[newChar] == 0) numUnique++; // increase if this is unique 
+        lastFour[curFour++ & 7] = newChar; // %8
         charMap[newChar]++;
         numSignals++;
     }
@@ -345,13 +353,13 @@ int Day7()
         {
             if (line[5] == '.') // cd..
             {
-                currentFolderIdx = parentPaths[--parentIndex];
+                currentFolderIdx = parentPaths[--parentIndex]; // set current path to parent path and decrease number of parent paths
             }
             else
             {
                 uint folderHash = PathToHash(line + 5);
                 Folder& currentFolder = folders[currentFolderIdx];
-
+                // find path that specified with input, in subfolders
                 for (uint i = 0u; i < currentFolder.numFolders; ++i)
                 {
                     Folder& subFolder = folders[currentFolder.subFolders[i]];
@@ -383,14 +391,13 @@ int Day7()
                 {
                     const char* curr = line;
                     uint fileSize = 0u;
-
+                    // string to int, atoi
                     while (*curr != ' ') fileSize = fileSize * 10u + (*curr++ - '0');
 
                     // increase size of all parent folders
                     short currParent = parentIndex;
 
-                    while (currParent >= 0)
-                    {
+                    while (currParent >= 0) {
                         folders[parentPaths[currParent--]].size += fileSize;
                     }
                 }
