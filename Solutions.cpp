@@ -31,19 +31,19 @@ constexpr inline uint WangHash(uint s) {
     return s;
 }
 
-constexpr inline ulong StringToHash64(const char* str, ulong hash = 0)
+constexpr inline uint StringToHash(const char* str, uint hash = 0)
 {
-    while (*str && !IsWhitespace(*str) && *str != '\n')
-        hash = *str++ + (hash << 6ull) + (hash << 16ull) - hash;
+    while (*str) // && !IsWhitespace(*str) && *str != '\n' // for more safety
+        hash = *str++ + (hash << 6u) + (hash << 16u) - hash;
     return hash;
 }
 
-constexpr inline ulong PathToHash(const char* str)
+constexpr inline uint PathToHash(const char* str)
 {
-    ulong hash = 0u, idx = 0, shift = 0;
-    while (*str && idx < 8 && *str != '\n' && !IsWhitespace(*str))
-        hash |= ulong(*str++) << shift, shift += 8ull, idx++;
-    return StringToHash64(str, MurmurHash(hash));
+    uint hash = 0u, idx = 0u, shift = 0u;
+    while (str[idx] && idx < 8u) // && *str != '\n' && !IsWhitespace(*str)
+        hash |= uint(str[idx]) << shift, shift += 8u, idx++;
+    return StringToHash(str + idx, WangHash(hash));
 }
 
 char* Helper_ReadAllText(const char* fileName, int* numCharacters = 0)
@@ -316,16 +316,16 @@ constexpr int MaxFolders = 400;
 
 struct Folder
 {
-    ulong hash; // name hash
-    ulong size;
-    int numFolders;
+    uint hash; // name hash
+    uint size;
+    uint numFolders;
     ushort subFolders[MaxSubFolders]; // index array for indexing array location in folders array
 };
 
 int Day7()
 {
     Folder folders[MaxFolders];
-    int numFolders = 1;
+    ushort numFolders = 1u;
 
     FILE* file = fopen("Assets/AOC7.txt", "r");
 
@@ -334,9 +334,9 @@ int Day7()
     folders[0].size = 0;
     folders[0].numFolders = 0;
 
-    int parentPaths[40] = { 0 };
-    int parentIndex = 0;
-    int currentFolderIdx = 0;
+    ushort parentPaths[40] = { 0 };
+    ushort parentIndex = 0;
+    ushort currentFolderIdx = 0;
 
     while (fgets(line, sizeof(line), file))
     {
@@ -352,7 +352,7 @@ int Day7()
                 uint folderHash = PathToHash(line + 5);
                 Folder& currentFolder = folders[currentFolderIdx];
 
-                for (int i = 0; i < currentFolder.numFolders; ++i)
+                for (uint i = 0u; i < currentFolder.numFolders; ++i)
                 {
                     Folder& subFolder = folders[currentFolder.subFolders[i]];
                     if (subFolder.hash == folderHash)
@@ -371,7 +371,7 @@ int Day7()
                 if (line[0] == 'd') // new dir
                 {
                     // create new folder
-                    int newFolderIdx = numFolders++;
+                    uint newFolderIdx = numFolders++;
                     folders[newFolderIdx].size = 0;
                     folders[newFolderIdx].numFolders = 0;
                     folders[newFolderIdx].hash = PathToHash(line + 4);
@@ -382,12 +382,12 @@ int Day7()
                 else if (IsNumber(line[0])) // new file
                 {
                     const char* curr = line;
-                    int fileSize = 0;
+                    uint fileSize = 0u;
 
-                    while (*curr != ' ') fileSize = fileSize * 10 + (*curr++ - '0');
+                    while (*curr != ' ') fileSize = fileSize * 10u + (*curr++ - '0');
 
                     // increase size of all parent folders
-                    int currParent = parentIndex;
+                    ushort currParent = parentIndex;
 
                     while (currParent >= 0)
                     {
