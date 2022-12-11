@@ -325,7 +325,7 @@ struct Folder
 int Day7()
 {
     Folder folders[MaxFolders];
-    ushort numFolders = 1u;
+    short numFolders = 1u;
 
     FILE* file = fopen("Assets/AOC7.txt", "r");
 
@@ -334,9 +334,9 @@ int Day7()
     folders[0].size = 0;
     folders[0].numFolders = 0;
 
-    ushort parentPaths[40] = { 0 };
-    ushort parentIndex = 0;
-    ushort currentFolderIdx = 0;
+    short parentPaths[40] = { 0 };
+    short parentIndex = 0;
+    short currentFolderIdx = 0;
 
     while (fgets(line, sizeof(line), file))
     {
@@ -387,7 +387,7 @@ int Day7()
                     while (*curr != ' ') fileSize = fileSize * 10u + (*curr++ - '0');
 
                     // increase size of all parent folders
-                    ushort currParent = parentIndex;
+                    short currParent = parentIndex;
 
                     while (currParent >= 0)
                     {
@@ -400,8 +400,8 @@ int Day7()
     }
 
     // accumulate for result
-    ulong result = 0ul;
-    for (int i = 0; i < numFolders; ++i)
+    uint result = 0ul;
+    for (short i = 0; i < numFolders; ++i)
     {
         if (folders[i].size < 100'000) result += folders[i].size;
     }
