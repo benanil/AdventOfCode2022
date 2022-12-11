@@ -433,3 +433,42 @@ int Day7()
     printf("result: %d ", result);
     return result;
 }
+
+int Day8()
+{
+    char* text = ReadAllFile("Assets/AOC8.txt");
+	bool visited[100][100] = { 0 };
+
+	// look from left to right
+	for (char y = 0; y < 99; ++y) 
+		for (char x = 0, maxSoFar = 0; x < 100; ++x) {
+			char current = text[y * 100 + x];
+			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+		}
+	// look from right to left
+	for (char y = 98; y >= 0; --y) 
+		for (char x = 99, maxSoFar = 0; x >= 0; --x) {
+			char current = text[y * 100 + x];
+			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+		}
+	// look from top to bottom
+	for (char x = 0; x < 100; ++x) 
+		for (char y = 0, maxSoFar = 0; y < 99; ++y) {
+			char current = text[y * 100 + x];
+			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+		}
+	// look from bottom to top
+	for (char x = 99; x >= 0; --x) 
+		for (char y = 98, maxSoFar = 0; y >= 0; --y) {
+			char current = text[y * 100 + x];
+			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+		}
+
+    int numVisible = 0;
+    for (char x = 0; x < 100; ++x) for (char y = 0; y < 99; ++y)
+        numVisible += visited[x][y];
+
+    printf("num visible: %d", numVisible);
+    free(text);
+    return 0;
+}
