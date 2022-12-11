@@ -1,3 +1,4 @@
+
 #include <fstream>
 #include <filesystem>
 #include <stdio.h>
@@ -6,10 +7,11 @@
 template<typename T> inline T Max(const T a, const T b) { return a > b ? a : b; }
 template<typename T> inline T Min(const T a, const T b) { return a < b ? a : b; }
 template<typename T> inline T Clamp(const T x, const T a, const T b) { return Max(a, Min(b, x)); }
-template<typename T> inline void Swap(T& a, T& b) { T t = a; a = b, b = t;  }
+template<typename T> inline void Swap(T& a, T& b) { T t = a; a = b, b = t; }
 
 typedef unsigned long long ulong;
 typedef unsigned int uint;
+typedef unsigned long long uint64;
 typedef unsigned short ushort;
 
 constexpr inline ulong MurmurHash(ulong h) {
@@ -21,12 +23,12 @@ constexpr inline ulong MurmurHash(ulong h) {
     return h;
 }
 
-constexpr inline uint WangHash(uint s) { 
-	s = (s ^ 61u) ^ (s >> 16u);
-	s *= 9, s = s ^ (s >> 4u);
-	s *= 0x27d4eb2du;
-	s = s ^ (s >> 15u); 
-	return s; 
+constexpr inline uint WangHash(uint s) {
+    s = (s ^ 61u) ^ (s >> 16u);
+    s *= 9, s = s ^ (s >> 4u);
+    s *= 0x27d4eb2du;
+    s = s ^ (s >> 15u);
+    return s;
 }
 
 constexpr inline ulong StringToHash64(const char* str, ulong hash = 0)
@@ -183,7 +185,7 @@ int Day3Part2()
 
     fclose(file);
 
-    AXLOG("our score: %d", prioritySum);
+    printf("our score: %d", prioritySum);
     // delete[] text;
     return prioritySum;
 }
@@ -217,72 +219,71 @@ int Day4()
 
 int Day5()
 {
-	FILE* file = fopen("Assets/AOC5.txt", "r");
+    FILE* file = fopen("Assets/AOC5.txt", "r");
 
-	char line[64];
-	char stacks[10][64] = { 0 }; // we can easily increase number of stacks here
-	char numPacks[10] = { 0 };
+    char line[64];
+    char stacks[10][64] = { 0 }; // we can easily increase number of stacks here
+    char numPacks[10] = { 0 };
 
-	char numStacks = 0;
+    char numStacks = 0;
 
-	while (fgets(line, sizeof(line), file))
-	{
-		if (line[1] == '1') break;
-		char len = (char)strlen(line), stackIndex = 0;
+    while (fgets(line, sizeof(line), file))
+    {
+        if (line[1] == '1') break;
+        char len = (char)strlen(line), stackIndex = 0;
 
-		for (char i = 1; i < len; i += 4, stackIndex++)
-		{
-			if (line[i] <= 'Z' && line[i] >= 'A')
-				stacks[stackIndex][numPacks[stackIndex]++] = line[i];
-		}
-		numStacks = Max(stackIndex, numStacks);
-	}
-	// reverse stacks
-	for (char i = 0; i < numStacks; ++i)
-		for (char j = 0, k = numPacks[i] - 1; j < k; j++, --k)
-			Swap(stacks[i][j], stacks[i][k]);
+        for (char i = 1; i < len; i += 4, stackIndex++)
+        {
+            if (line[i] <= 'Z' && line[i] >= 'A')
+                stacks[stackIndex][numPacks[stackIndex]++] = line[i];
+        }
+        numStacks = Max(stackIndex, numStacks);
+    }
+    // reverse stacks
+    for (char i = 0; i < numStacks; ++i)
+        for (char j = 0, k = numPacks[i] - 1; j < k; j++, --k)
+            Swap(stacks[i][j], stacks[i][k]);
 
-	fgets(line, sizeof(line), file);
+    fgets(line, sizeof(line), file);
 
-	while (fgets(line, sizeof(line), file))
-	{
-		char amount = 0, from = 0, to = 0;
-		//sscanf(line, "move %i from %i to %i", &amount, &from, &to);
-		const char* curr = line + 5;
-		while (*curr != ' ') amount = amount * 10 + (*curr++ - '0'); curr += 6;
+    while (fgets(line, sizeof(line), file))
+    {
+        char amount = 0, from = 0, to = 0;
+        //sscanf(line, "move %i from %i to %i", &amount, &from, &to);
+        const char* curr = line + 5;
+        while (*curr != ' ') amount = amount * 10 + (*curr++ - '0'); curr += 6;
 
-		while (*curr != ' ') from = from * 10 + (*curr++ - '0'); curr += 4;
+        while (*curr != ' ') from = from * 10 + (*curr++ - '0'); curr += 4;
 
-		while (*curr && *curr != '\n') to = to * 10 + (*curr++ - '0');
+        while (*curr && *curr != '\n') to = to * 10 + (*curr++ - '0');
 
-		from--, to--; // decrese because 1 indexed
-	#ifdef PART1
-		for (int i = 0; i < amount; ++i) {
-			stacks[to][numPacks[to]++] = stacks[from][--numPacks[from]];
-		}
-	#else
-		char end = numPacks[to] + amount - 1;
-		numPacks[to] += amount;
-		while (amount--) {
-			stacks[to][end--] = stacks[from][--numPacks[from]];
-		}
-	#endif
-	}
+        from--, to--; // decrese because 1 indexed
+#ifdef PART1
+        for (int i = 0; i < amount; ++i) {
+            stacks[to][numPacks[to]++] = stacks[from][--numPacks[from]];
+        }
+#else
+        char end = numPacks[to] + amount - 1;
+        numPacks[to] += amount;
+        while (amount--) {
+            stacks[to][end--] = stacks[from][--numPacks[from]];
+        }
+#endif
+    }
 
-	// collect top blocks
-	for (char i = 0; i < numStacks; ++i) {
-		line[i] = stacks[i][numPacks[i] - 1];
-	}
-	line[numStacks] = 0;
-	fclose(file);
-	printf("top stacks: %s", line);
-	return 0;
+    // collect top blocks
+    for (char i = 0; i < numStacks; ++i) {
+        line[i] = stacks[i][numPacks[i] - 1];
+    }
+    line[numStacks] = 0;
+    fclose(file);
+    printf("top stacks: %s", line);
+    return 0;
 }
 
 int Day6()
 {
-    CSTIMER("speed: ");
-    const char* text = Helper_ReadAllText("Assets/AOC6");
+    char* text = Helper_ReadAllText("Assets/AOC6");
     const char* curr = text;
 
     unsigned numSignals = 0u, numUnique = 0u;
@@ -305,7 +306,7 @@ int Day6()
         charMap[newChar]++;
         numSignals++;
     }
-	free(text);
+    free(text);
     printf("processed signals: %d \n", numSignals);
     return 0;
 }
@@ -333,13 +334,13 @@ int Day7()
     folders[0].size = 0;
     folders[0].numFolders = 0;
 
-	int parentPaths[40] = { 0 };
+    int parentPaths[40] = { 0 };
     int parentIndex = 0;
     int currentFolderIdx = 0;
 
     while (fgets(line, sizeof(line), file))
     {
-		parse_command:
+    parse_command:
         if (line[2] == 'c') // cd command
         {
             if (line[5] == '.') // cd..
@@ -351,8 +352,7 @@ int Day7()
                 uint folderHash = PathToHash(line + 5);
                 Folder& currentFolder = folders[currentFolderIdx];
 
-                int i = 0;
-                for (; i < currentFolder.numFolders; ++i)
+                for (int i = 0; i < currentFolder.numFolders; ++i)
                 {
                     Folder& subFolder = folders[currentFolder.subFolders[i]];
                     if (subFolder.hash == folderHash)
@@ -362,8 +362,6 @@ int Day7()
                         break;
                     }
                 }
-
-                assert(i < currentFolder.numFolders);
             }
         }
         else if (line[2] == 'l') // ls command
@@ -397,19 +395,17 @@ int Day7()
                     }
                 }
                 else if (line[0] == '$') goto parse_command;
-                else assert(0);
             }
         }
-        else assert(0);
     }
 
-	// accumulate for result
-	ulong result = 0ul;
-	for (int i = 0; i < numFolders; ++i)
-	{
-		if (folders[i].size < 100'000) result += folders[i].size;
-	}
-	fclose(file);
+    // accumulate for result
+    ulong result = 0ul;
+    for (int i = 0; i < numFolders; ++i)
+    {
+        if (folders[i].size < 100'000) result += folders[i].size;
+    }
+    fclose(file);
     printf("result: %d", result);
     return result;
 }
