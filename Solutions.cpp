@@ -411,13 +411,25 @@ int Day7()
         }
     }
 
-    // accumulate for result
-    uint result = 0ul;
+    uint result = 0u;
+#ifdef PART1
+	for (short i = 0; i < numFolders; ++i)
+	{
+		if (folders[i].size < 100'000) result += folders[i].size;
+	}
+#else
+    uint minRemovedSize = 0, minFile = LONG_MAX;    
+    uint needSpace = 30000000 - (70000000 - folders[0].size);
+
     for (short i = 0; i < numFolders; ++i)
-    {
-        if (folders[i].size < 100'000) result += folders[i].size;
+    {   
+        if (folders[i].size >= needSpace && folders[i].size < minFile)
+        {
+            minFile = folders[i].size;
+        }
     }
-    fclose(file);
-    printf("result: %d", result);
+    result = minFile;
+#endif
+    printf("result: %d ", result);
     return result;
 }
