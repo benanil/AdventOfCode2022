@@ -329,7 +329,7 @@ int Day7()
 
     FILE* file = fopen("Assets/AOC7.txt", "r");
 
-    char line[64];
+    char line[32];
     fgets(line, sizeof(line), file); // read first line: $ cd /
     folders[0].size = 0;
     folders[0].numFolders = 0;
