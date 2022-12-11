@@ -312,7 +312,7 @@ int Day6()
 }
 
 constexpr uint MaxSubFolders = 12;
-constexpr int MaxFolders = 400;
+constexpr int MaxFolders = 256;
 
 struct Folder
 {
