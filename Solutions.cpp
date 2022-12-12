@@ -472,3 +472,47 @@ int Day8()
     free(text);
     return 0;
 }
+
+int Day10()
+{
+    const char* text = ReadAllFile("Assets/AOC10.txt");
+    const char* curr = text;
+
+	int x = 1;
+	short cycle = 1, targetCycle = 20; // target cycle will be 20 and we will add it 40 for the pattern: 20-60-100-140-180-120
+	int resultSum = 0;
+
+    while (*curr)
+    {
+        if (*curr == 'a') // addx instruction
+        {
+            if (++cycle == targetCycle) {
+                resultSum += targetCycle * x;
+                targetCycle += 40;
+            }
+            cycle++;
+            curr += 5; // go to number index
+			bool negative = false;
+			if (*curr == '-') curr++, negative = true;
+            int instructionVal = 0;
+
+			while (!IsWhitespace(*curr) && *curr != '\n')
+                instructionVal = instructionVal * 10 + (*curr++ - '0');
+			if (negative) instructionVal = -instructionVal;
+            x += instructionVal;
+        }
+        else // noop instruction
+        {
+            ++cycle; curr += 5; // +5 for jumping from beginning of the instruction to end of line
+        }
+		
+		if (cycle == targetCycle) {
+			resultSum += targetCycle * x;
+			targetCycle += 40;
+        }
+        if (cycle >= 220) break;
+		while (IsWhitespace(*curr) || *curr == '\n') curr++;
+    }
+	printf("result: %d", resultSum);
+    return 0;
+}
