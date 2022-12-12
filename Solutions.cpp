@@ -1,4 +1,3 @@
-
 #include <fstream>
 #include <filesystem>
 #include <stdio.h>
@@ -117,7 +116,7 @@ int Day2()
     {
         // char to rock paper scisor conversation, 'A'-'C' to 0, 2
         int opponent = *curr++ - 'A'; curr++;
-        int ourself  = *curr++ - 'X'; curr++;
+        int ourself = *curr++ - 'X'; curr++;
 
         enum { Rock, Paper, Scisor };
         int weWin = ourself == Rock && opponent == Scisor;
@@ -145,12 +144,12 @@ int Day3()
     {
         uint64 existanceMap = 0ull; // we will use this as unordered_set<char>, or bitset
         size_t i = 0, n = strlen(line);
-        
+
         // parse first half of text. existanceMap.insert(line[i]);
         for (; i < (n / 2); ++i) existanceMap |= 1ull << (line[i] - 'A');
         // find same character index in second part,  if (existanceMap.find(line[i]))
-        while(i < n)
-            if (existanceMap & (1ull << (line[i++] - 'A'))) break; 
+        while (i < n)
+            if (existanceMap & (1ull << (line[i++] - 'A'))) break;
 
         prioritySum += line[i] <= 'Z' ? line[i] - 'A' + 27 : line[i] - 'a' + 1; // convert character to point ve earn
     }
@@ -170,27 +169,27 @@ int Day3Part2()
     while (fgets(line, sizeof(line), file)) // read first line
     {
         // 64bit mask's for upper-lower case characters, same as unordered_set<char>
-        uint64 amask = 0u, bmask = 0u, cmask = 0u; 
+        uint64 amask = 0u, bmask = 0u, cmask = 0u;
 
         const char* curr = line;
         // create first line's mask
         // -'A' because we will map characters into 64bit.
         // imagine something like this: 101010111111100000001010101111000010101111
         //              upper case start^       lower case start^
-        while (*curr != '\n') amask |= 1ull << (*curr++ - 'A');    
+        while (*curr != '\n') amask |= 1ull << (*curr++ - 'A');
 
         fgets(line, sizeof(line), file); curr = line; // read second line
         while (*curr != '\n') bmask |= 1ull << (*curr++ - 'A');
 
         fgets(line, sizeof(line), file); curr = line; // read third line
-        while (*curr != '\n') cmask |= 1ull << (*curr++ - 'A'); 
+        while (*curr != '\n') cmask |= 1ull << (*curr++ - 'A');
 
         uint64 intersection = amask & bmask & cmask; // set intersection
 
         // detect intersection index, if upper case range will be: 0 <= x <= 26. if lower case int('a' - 'A') <= x < 64
         uint64 tzcnt = _tzcnt_u64(intersection); // __builtin_ctz, returns intersection bit index, only one index is common in this 3 line
         /* if upper case*/
-        if (tzcnt < 30) prioritySum += tzcnt + 27; 
+        if (tzcnt < 30) prioritySum += tzcnt + 27;
         else prioritySum += tzcnt - ('a' - 'A') + 1; // convert 'a'-'z' to 0-26
     }
 
@@ -251,7 +250,7 @@ int Day5()
         numStacks = Max(stackIndex, numStacks);
     }
     // reverse each stack, because we parsed reversly
-    for (char i = 0; i < numStacks; ++i) 
+    for (char i = 0; i < numStacks; ++i)
         for (char j = 0, k = numPacks[i] - 1; j < k; j++, --k)
             Swap(stacks[i][j], stacks[i][k]);
 
@@ -264,7 +263,7 @@ int Day5()
         const char* curr = line + 5;
         // atoi. parse line, amount and to.
         while (*curr != ' ') amount = amount * 10 + (*curr++ - '0'); curr += 6; // +6 for seeking begining of the from index: strlen(' from ')
-        while (*curr != ' ') from   = from   * 10 + (*curr++ - '0'); curr += 4; // +4 for seeking begining of the to index: strlen(' to ')
+        while (*curr != ' ') from = from * 10 + (*curr++ - '0'); curr += 4; // +4 for seeking begining of the to index: strlen(' to ')
         while (*curr && *curr != '\n') to = to * 10 + (*curr++ - '0');
 
         from--, to--; // decrese because 1 indexed
@@ -300,7 +299,7 @@ int Day6()
     unsigned numSignals = 0u, numUnique = 0u;
     char charMap[28] = { 0 }; // unordered_set<char> 
     // ring buffer that keeps track of currently visited characters 
-    char lastFour[8] = { 27, 27, 27, 27, 27, 27, 27, 27 }; 
+    char lastFour[8] = { 27, 27, 27, 27, 27, 27, 27, 27 };
     //                   ^curFour         ^lastidx
     char curFour = 4, lastIdx = 0;
 
@@ -413,16 +412,16 @@ int Day7()
 
     uint result = 0u;
 #ifdef PART1
-	for (short i = 0; i < numFolders; ++i)
-	{
-		if (folders[i].size < 100'000) result += folders[i].size;
-	}
+    for (short i = 0; i < numFolders; ++i)
+    {
+        if (folders[i].size < 100'000) result += folders[i].size;
+    }
 #else
-    uint minRemovedSize = 0, minFile = LONG_MAX;    
+    uint minRemovedSize = 0, minFile = LONG_MAX;
     uint needSpace = 30000000 - (70000000 - folders[0].size);
 
     for (short i = 0; i < numFolders; ++i)
-    {   
+    {
         if (folders[i].size >= needSpace && folders[i].size < minFile)
         {
             minFile = folders[i].size;
@@ -437,32 +436,32 @@ int Day7()
 int Day8()
 {
     char* text = ReadAllFile("Assets/AOC8.txt");
-	bool visited[100][100] = { 0 };
+    bool visited[100][100] = { 0 };
 
-	// look from left to right
-	for (char y = 0; y < 99; ++y) 
-		for (char x = 0, maxSoFar = 0; x < 100; ++x) {
-			char current = text[y * 100 + x];
-			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
-		}
-	// look from right to left
-	for (char y = 98; y >= 0; --y) 
-		for (char x = 99, maxSoFar = 0; x >= 0; --x) {
-			char current = text[y * 100 + x];
-			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
-		}
-	// look from top to bottom
-	for (char x = 0; x < 100; ++x) 
-		for (char y = 0, maxSoFar = 0; y < 99; ++y) {
-			char current = text[y * 100 + x];
-			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
-		}
-	// look from bottom to top
-	for (char x = 99; x >= 0; --x) 
-		for (char y = 98, maxSoFar = 0; y >= 0; --y) {
-			char current = text[y * 100 + x];
-			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
-		}
+    // look from left to right
+    for (char y = 0; y < 99; ++y)
+        for (char x = 0, maxSoFar = 0; x < 100; ++x) {
+            char current = text[y * 100 + x];
+            if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+        }
+    // look from right to left
+    for (char y = 98; y >= 0; --y)
+        for (char x = 99, maxSoFar = 0; x >= 0; --x) {
+            char current = text[y * 100 + x];
+            if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+        }
+    // look from top to bottom
+    for (char x = 0; x < 100; ++x)
+        for (char y = 0, maxSoFar = 0; y < 99; ++y) {
+            char current = text[y * 100 + x];
+            if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+        }
+    // look from bottom to top
+    for (char x = 99; x >= 0; --x)
+        for (char y = 98, maxSoFar = 0; y >= 0; --y) {
+            char current = text[y * 100 + x];
+            if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+        }
 
     int numVisible = 0;
     for (char x = 0; x < 100; ++x) for (char y = 0; y < 99; ++y)
@@ -478,9 +477,9 @@ int Day10()
     const char* text = ReadAllFile("Assets/AOC10.txt");
     const char* curr = text;
 
-	int x = 1;
-	short cycle = 1, targetCycle = 20; // target cycle will be 20 and we will add it 40 for the pattern: 20-60-100-140-180-120
-	int resultSum = 0;
+    int x = 1;
+    short cycle = 1, targetCycle = 20; // target cycle will be 20 and we will add it 40 for the pattern: 20-60-100-140-180-120
+    int resultSum = 0;
 
     while (*curr)
     {
@@ -492,27 +491,27 @@ int Day10()
             }
             cycle++;
             curr += 5; // go to number index
-			bool negative = false;
-			if (*curr == '-') curr++, negative = true;
+            bool negative = false;
+            if (*curr == '-') curr++, negative = true;
             int instructionVal = 0;
 
-			while (!IsWhitespace(*curr) && *curr != '\n')
+            while (!IsWhitespace(*curr) && *curr != '\n')
                 instructionVal = instructionVal * 10 + (*curr++ - '0');
-			if (negative) instructionVal = -instructionVal;
+            if (negative) instructionVal = -instructionVal;
             x += instructionVal;
         }
         else // noop instruction
         {
             ++cycle; curr += 5; // +5 for jumping from beginning of the instruction to end of line
         }
-		
-		if (cycle == targetCycle) {
-			resultSum += targetCycle * x;
-			targetCycle += 40;
+
+        if (cycle == targetCycle) {
+            resultSum += targetCycle * x;
+            targetCycle += 40;
         }
         if (cycle >= 220) break;
-		while (IsWhitespace(*curr) || *curr == '\n') curr++;
+        while (IsWhitespace(*curr) || *curr == '\n') curr++;
     }
-	printf("result: %d", resultSum);
+    printf("result: %d", resultSum);
     return 0;
 }
