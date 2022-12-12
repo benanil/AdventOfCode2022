@@ -494,7 +494,7 @@ int Day10()
             bool negative = false;
             if (*curr == '-') curr++, negative = true;
             int instructionVal = 0;
-
+            // parse instruction number
             while (!IsWhitespace(*curr) && *curr != '\n')
                 instructionVal = instructionVal * 10 + (*curr++ - '0');
             if (negative) instructionVal = -instructionVal;
