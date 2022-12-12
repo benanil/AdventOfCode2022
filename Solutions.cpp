@@ -55,6 +55,11 @@ inline int ParseInt(const char*& curr)
     return negative ? -instructionVal : instructionVal;
 }
 
+template<typename T> void FillN(T* arr, T val, int n) 
+{
+    for (int i = 0; i < n; ++i) arr[i] = val;
+}
+
 char* Helper_ReadAllText(const char* fileName, int* numCharacters = 0)
 {
     FILE* fp = fopen(fileName, "r");
@@ -476,17 +481,36 @@ int Day8()
     free(text);
     return 0;
 }
-
+#include <chrono> 
 int Day10()
 {
     const char* text = ReadAllFile("Assets/AOC10.txt");
     const char* curr = text;
 
+    char screen[6][40];
+    for (int i = 0; i < 6; ++i) FillN(screen[i], '.', 40);
+    
     int x = 1;
     short cycle = 1, targetCycle = 20; // target cycle will be 20 and we will add it 40 for the pattern: 20-60-100-140-180-120
     int resultSum = 0;
 
     const auto processTargetReached = [&]() {
+        int row = Min(5,(cycle - 1) / 40);
+        int col = (cycle - 1) % 40;
+        bool on = x >= col - 1 && x <= col + 1;
+        screen[row][col] = on ? '#' : '.';
+
+        system("@cls||clear"); // clear console
+
+        for (int i = 0; i < 6; ++i) { // print screen display
+            for (int j = 0; j < 40; ++j)
+                printf("%c", screen[i][j]);
+            printf("\n");
+        }
+
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(4ms);
+        
         if (cycle == targetCycle) {
             resultSum += targetCycle * x;
             targetCycle += 40;
