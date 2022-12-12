@@ -45,6 +45,16 @@ constexpr inline uint PathToHash(const char* str)
     return StringToHash(str + idx, WangHash(hash));
 }
 
+inline int ParseInt(const char*& curr)
+{
+    int instructionVal = 0;
+    bool negative = false;
+    if (*curr == '-') curr++, negative = true;
+    while (!IsWhitespace(*curr) && *curr != '\n')
+        instructionVal = instructionVal * 10 + (*curr++ - '0');
+    return negative ? -instructionVal : instructionVal;
+}
+
 char* Helper_ReadAllText(const char* fileName, int* numCharacters = 0)
 {
     FILE* fp = fopen(fileName, "r");
@@ -355,63 +365,58 @@ int Day7()
     parse_command:
         if (line[2] == 'c') // cd command
         {
-            if (line[5] == '.') // cd..
-            {
+            if (line[5] == '.') { // cd..
                 currentFolderIdx = parentPaths[--parentIndex]; // set current path to parent path and decrease number of parent paths
+                continue;
             }
-            else
+            uint folderHash = PathToHash(line + 5);
+            Folder& currentFolder = folders[currentFolderIdx];
+            // find path that specified with input, in subfolders
+            for (uint i = 0u; i < currentFolder.numFolders; ++i)
             {
-                uint folderHash = PathToHash(line + 5);
-                Folder& currentFolder = folders[currentFolderIdx];
-                // find path that specified with input, in subfolders
-                for (uint i = 0u; i < currentFolder.numFolders; ++i)
+                Folder& subFolder = folders[currentFolder.subFolders[i]];
+                if (subFolder.hash == folderHash)
                 {
-                    Folder& subFolder = folders[currentFolder.subFolders[i]];
-                    if (subFolder.hash == folderHash)
-                    {
-                        parentPaths[parentIndex++] = currentFolderIdx;
-                        parentPaths[parentIndex] = currentFolderIdx = currentFolder.subFolders[i];
-                        break;
-                    }
+                    parentPaths[parentIndex++] = currentFolderIdx;
+                    parentPaths[parentIndex] = currentFolderIdx = currentFolder.subFolders[i];
+                    break;
                 }
             }
+            continue;
         }
-        else if (line[2] == 'l') // ls command
+        // else if (line[2] == 'l') // ls command
+        while (fgets(line, sizeof(line), file))
         {
-            while (fgets(line, sizeof(line), file))
+            if (line[0] == 'd') // new dir
             {
-                if (line[0] == 'd') // new dir
-                {
-                    // create new folder
-                    uint newFolderIdx = numFolders++;
-                    folders[newFolderIdx].size = 0;
-                    folders[newFolderIdx].numFolders = 0;
-                    folders[newFolderIdx].hash = PathToHash(line + 4);
+                // create new folder
+                uint newFolderIdx = numFolders++;
+                folders[newFolderIdx].size = 0;
+                folders[newFolderIdx].numFolders = 0;
+                folders[newFolderIdx].hash = PathToHash(line + 4);
 
-                    Folder& currentFolder = folders[currentFolderIdx];
-                    currentFolder.subFolders[currentFolder.numFolders++] = newFolderIdx; // add new folder to folders array
-                }
-                else if (IsNumber(line[0])) // new file
-                {
-                    const char* curr = line;
-                    uint fileSize = 0u;
-                    // string to int, atoi
-                    while (*curr != ' ') fileSize = fileSize * 10u + (*curr++ - '0');
-
-                    // increase size of all parent folders
-                    short currParent = parentIndex;
-
-                    while (currParent >= 0) {
-                        folders[parentPaths[currParent--]].size += fileSize;
-                    }
-                }
-                else if (line[0] == '$') goto parse_command;
+                Folder& currentFolder = folders[currentFolderIdx];
+                currentFolder.subFolders[currentFolder.numFolders++] = newFolderIdx; // add new folder to folders array
             }
+            else if (IsNumber(line[0])) // new file
+            {
+                const char* curr = line;
+                uint fileSize = 0u;
+                // string to int, atoi
+                while (*curr != ' ') fileSize = fileSize * 10u + (*curr++ - '0');
+
+                // increase size of all parent folders
+                short currParent = parentIndex;
+                while (currParent >= 0) {
+                    folders[parentPaths[currParent--]].size += fileSize;
+                }
+            }
+            else if (line[0] == '$') goto parse_command;
         }
     }
 
     uint result = 0u;
-#ifdef PART1
+#ifndef PART1 
     for (short i = 0; i < numFolders; ++i)
     {
         if (folders[i].size < 100'000) result += folders[i].size;
@@ -481,35 +486,27 @@ int Day10()
     short cycle = 1, targetCycle = 20; // target cycle will be 20 and we will add it 40 for the pattern: 20-60-100-140-180-120
     int resultSum = 0;
 
-    while (*curr)
-    {
-        if (*curr == 'a') // addx instruction
-        {
-            if (++cycle == targetCycle) {
-                resultSum += targetCycle * x;
-                targetCycle += 40;
-            }
-            cycle++;
-            curr += 5; // go to number index
-            bool negative = false;
-            if (*curr == '-') curr++, negative = true;
-            int instructionVal = 0;
-            // parse instruction number
-            while (!IsWhitespace(*curr) && *curr != '\n')
-                instructionVal = instructionVal * 10 + (*curr++ - '0');
-            if (negative) instructionVal = -instructionVal;
-            x += instructionVal;
-        }
-        else // noop instruction
-        {
-            ++cycle; curr += 5; // +5 for jumping from beginning of the instruction to end of line
-        }
-
+    const auto processTargetReached = [&]() {
         if (cycle == targetCycle) {
             resultSum += targetCycle * x;
             targetCycle += 40;
         }
-        if (cycle >= 220) break;
+    };
+    
+    while (*curr && cycle <= 220)
+    {
+        cycle++;
+        bool isAddxInstruction = *curr == 'a';
+        curr += 5; // +5 because if addx: go to number index. for noop: jumping from beginning of the instruction to end of line
+
+        if (isAddxInstruction)
+        {
+            processTargetReached();
+            cycle++;
+            x += ParseInt(curr);
+        } // else noop instruction
+
+        processTargetReached();
         while (IsWhitespace(*curr) || *curr == '\n') curr++;
     }
     printf("result: %d", resultSum);
