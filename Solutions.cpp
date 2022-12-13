@@ -13,15 +13,6 @@ typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef unsigned short ushort;
 
-constexpr inline ulong MurmurHash(ulong h) {
-    h ^= h >> 33ul;
-    h *= 0xff51afd7ed558ccdUL;
-    h ^= h >> 33ul;
-    h *= 0xc4ceb9fe1a85ec53UL;
-    h ^= h >> 33ul;
-    return h;
-}
-
 constexpr inline uint WangHash(uint s) {
     s = (s ^ 61u) ^ (s >> 16u);
     s *= 9, s = s ^ (s >> 4u);
@@ -45,14 +36,44 @@ constexpr inline uint PathToHash(const char* str)
     return StringToHash(str + idx, WangHash(hash));
 }
 
-inline int ParseInt(const char*& curr)
+int ParseInt(const char*& curr)
 {
-    int instructionVal = 0;
+	while (IsWhitespace(*curr)) curr++; // skip whitespace
+	int instructionVal = 0;
     bool negative = false;
     if (*curr == '-') curr++, negative = true;
-    while (!IsWhitespace(*curr) && *curr != '\n')
+	while (IsNumber(*curr))
         instructionVal = instructionVal * 10 + (*curr++ - '0');
-    return negative ? -instructionVal : instructionVal;
+    if (negative) instructionVal = -instructionVal;
+    return instructionVal;
+}
+
+bool TryParse(int& val, const char*& curr)
+{   // additional checks
+	if (*curr == 0 || *curr == '\n') return false;
+	while (IsWhitespace(*curr)) curr++; 
+	if (!IsNumber(*curr) && *curr != '-') return false;
+	val = ParseInt(curr);
+	return true;
+}
+
+bool StartsWith(const char*& curr, const char* str)
+{
+	const char* currStart = curr;
+	while (IsWhitespace(*curr)) curr++;
+	if (*curr != *str) return false;
+	while (*str && *curr++ == *str++);
+	bool isEqual = *str == 0;
+	if (!isEqual) curr = currStart;
+	return isEqual;
+}
+
+template<typename T>
+void BubleSort(T* a, int len)
+{
+	for (int i = 0; i < len; ++i)
+		for (int j = i+1; j < len; ++j)
+			if (a[j] < a[i]) Swap(a[i], a[j]);
 }
 
 template<typename T> void FillN(T* arr, T val, int n) 
@@ -535,4 +556,99 @@ int Day10()
     }
     printf("result: %d", resultSum);
     return 0;
+}
+
+int ApplyOp(char operation, int a, int b)
+{
+	if (b == INT_MAX) b = a;
+	switch (operation) {
+		case '*':  return a * b; break;
+		case '+':  return a + b; break;
+	};
+	return 0;
+}
+
+struct Monkey
+{
+	int items[30];
+	int numItems = 0;
+	char operation = '*';
+	int operationAmount = -1;
+	int testValue = -1; // divisible test
+	int trueThrowIdx = -1;
+	int falseThrowIdx = -1;
+	
+	void PushItem(int item) { items[numItems++] = item; }
+};
+
+int Day11()
+{
+    // required more than one monkey otherwise we will get error
+    FILE* file = fopen("Assets/AOC11.txt", "r");
+	char line[64];
+	Monkey monkeys[8]{};
+	int numInspected[8] = {0}; // number of inspected items per monkey
+
+	int numMonkeys = 0;
+
+	while (fgets(line, sizeof(line), file))
+	{
+		const char* curr = line;
+
+		if (StartsWith(curr, "Monkey")) {
+			Monkey& monkey = monkeys[numMonkeys++];
+
+			fgets(line, sizeof(line), file); curr = line;
+			if (StartsWith(curr, "Starting items:")) {
+				// parse array of ints
+				while (TryParse(monkey.items[monkey.numItems], curr))
+					monkey.numItems++, curr++;
+			}
+			fgets(line, sizeof(line), file); curr = line;
+			if (StartsWith(curr, "Operation:"))
+			{
+				while (*curr != '*' && *curr != '+') curr++;
+				monkey.operation = *curr++;
+				if (StartsWith(curr, "old")) monkey.operationAmount = INT_MAX;
+				else monkey.operationAmount = ParseInt(curr); 
+			}
+			fgets(line, sizeof(line), file); curr = line;
+			if (StartsWith(curr, "Test:"))
+			{
+				while (!IsNumber(*curr)) curr++;
+				monkey.testValue = ParseInt(curr);
+			}
+			fgets(line, sizeof(line), file); curr = line;
+			while (!IsNumber(*curr)) curr++;
+			monkey.trueThrowIdx = ParseInt(curr);
+			fgets(line, sizeof(line), file); curr = line;
+			while (!IsNumber(*curr)) curr++;
+			monkey.falseThrowIdx = ParseInt(curr);
+		}
+	}
+
+	for (int r = 0; r < 20; ++r) // r for round
+	{
+		for (int m = 0; m < numMonkeys; ++m)
+		{
+			Monkey& monkey = monkeys[m];
+			
+			for (int i = 0; i < monkey.numItems; ++i)
+			{ 
+				monkey.items[i] = ApplyOp(monkey.operation, monkey.items[i], monkey.operationAmount) / 3;
+				if (monkey.items[i] % monkey.testValue == 0)
+					monkeys[monkey.trueThrowIdx].PushItem(monkey.items[i]);
+				else
+					monkeys[monkey.falseThrowIdx].PushItem(monkey.items[i]);
+				monkey.items[i] = -1;
+			}
+			numInspected[m] += monkey.numItems;
+			monkey.numItems = 0; // clear all of the items we have moved it to other monkeys
+		}
+	}
+	// find maximum inspected monkeys and multiply
+	BubleSort(numInspected, numMonkeys);
+	int monkeyBusiness = numInspected[numMonkeys - 1] * numInspected[numMonkeys - 2];
+	printf("monkeyBusiness: %d", monkeyBusiness);
+    return monkeyBusiness;
 }
