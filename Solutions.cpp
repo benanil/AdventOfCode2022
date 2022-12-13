@@ -594,37 +594,36 @@ int Day11()
 	while (fgets(line, sizeof(line), file))
 	{
 		const char* curr = line;
+		if (!StartsWith(curr, "Monkey")) continue;
 
-		if (StartsWith(curr, "Monkey")) {
-			Monkey& monkey = monkeys[numMonkeys++];
+		Monkey& monkey = monkeys[numMonkeys++];
 
-			fgets(line, sizeof(line), file); curr = line;
-			if (StartsWith(curr, "Starting items:")) {
-				// parse array of ints
-				while (TryParse(monkey.items[monkey.numItems], curr))
-					monkey.numItems++, curr++;
-			}
-			fgets(line, sizeof(line), file); curr = line;
-			if (StartsWith(curr, "Operation:"))
-			{
-				while (*curr != '*' && *curr != '+') curr++;
-				monkey.operation = *curr++;
-				if (StartsWith(curr, "old")) monkey.operationAmount = INT_MAX;
-				else monkey.operationAmount = ParseInt(curr); 
-			}
-			fgets(line, sizeof(line), file); curr = line;
-			if (StartsWith(curr, "Test:"))
-			{
-				while (!IsNumber(*curr)) curr++;
-				monkey.testValue = ParseInt(curr);
-			}
-			fgets(line, sizeof(line), file); curr = line;
-			while (!IsNumber(*curr)) curr++;
-			monkey.trueThrowIdx = ParseInt(curr);
-			fgets(line, sizeof(line), file); curr = line;
-			while (!IsNumber(*curr)) curr++;
-			monkey.falseThrowIdx = ParseInt(curr);
+		fgets(line, sizeof(line), file); curr = line;
+		if (StartsWith(curr, "Starting items:")) {
+			// parse array of ints
+			while (TryParse(monkey.items[monkey.numItems], curr))
+				monkey.numItems++, curr++;
 		}
+		fgets(line, sizeof(line), file); curr = line;
+		if (StartsWith(curr, "Operation:"))
+		{
+			while (*curr != '*' && *curr != '+') curr++;
+			monkey.operation = *curr++;
+			if (StartsWith(curr, "old")) monkey.operationAmount = INT_MAX;
+			else monkey.operationAmount = ParseInt(curr); 
+		}
+		fgets(line, sizeof(line), file); curr = line;
+		if (StartsWith(curr, "Test:"))
+		{
+			while (!IsNumber(*curr)) curr++;
+			monkey.testValue = ParseInt(curr);
+		}
+		fgets(line, sizeof(line), file); curr = line;
+		while (!IsNumber(*curr)) curr++;
+		monkey.trueThrowIdx = ParseInt(curr);
+		fgets(line, sizeof(line), file); curr = line;
+		while (!IsNumber(*curr)) curr++;
+		monkey.falseThrowIdx = ParseInt(curr);
 	}
 
 	for (int r = 0; r < 20; ++r) // r for round
