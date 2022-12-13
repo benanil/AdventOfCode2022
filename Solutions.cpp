@@ -225,12 +225,6 @@ int Day3Part2()
 	return prioritySum;   
 }
 
-struct Range {
-    int begin = 0, end = 0;
-    Range() { }
-    Range(int b, int e) : begin(b), end(e) { }
-};
-
 int Day4()
 {
     int numFullContain = 0;
@@ -239,15 +233,11 @@ int Day4()
 
     while (fgets(line, sizeof(line), file))
     {
-        Range first, second;
-
-        fscanf(file, "%i-%i,%i-%i", &first.begin, &first.end, &second.begin, &second.end);
-
-        if ((first.begin <= second.begin && first.end >= second.end)
-            || (second.begin <= first.begin && second.end >= first.end))
-            numFullContain++;
+	int firstBegin, firstEnd, secondBegin, secondEnd;
+        fscanf(file, "%i-%i,%i-%i", &firstBegin, &firstEnd, &secondBegin, &secondEnd);
+        numFullContain += (firstBegin <= secondBegin && firstEnd >= secondEnd)
+		       || (secondBegin <= firstBegin && secondEnd >= firstEnd);
     }
-
     fclose(file);
     printf("num full contain: %d", numFullContain);
     return numFullContain;
