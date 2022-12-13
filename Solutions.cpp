@@ -196,45 +196,35 @@ int Day3()
 
 int Day3Part2()
 {
-    char const* const fileName = "Assets/AOC3.txt";
-    FILE* file = fopen(fileName, "r");
+    FILE* file = fopen("Assets/AOC3.txt", "r");
     char line[128] = { 0 };
     int prioritySum = 0;
-    // parse 3 line until end of file
-    // recommended ascii table for better understanding.
-    while (fgets(line, sizeof(line), file)) // read first line
-    {
-        // 64bit mask's for upper-lower case characters, same as unordered_set<char>
-        uint64 amask = 0u, bmask = 0u, cmask = 0u;
 
-        const char* curr = line;
-        // create first line's mask
+    const auto parseLine = [&]() {
+        const char* curr = fgets(line, sizeof(line), file); if (!curr) return 0ull;
+        // 64bit mask's for upper-lower case characters, same as unordered_set<char> and bitset<64>
+        uint64 mask = 0ull;
         // -'A' because we will map characters into 64bit.
-        // imagine something like this: 101010111111100000001010101111000010101111
-        //              upper case start^       lower case start^
-        while (*curr != '\n') amask |= 1ull << (*curr++ - 'A');
+        while (*curr != '\n') mask |= 1ull << (*curr++ - 'A');
+        return mask;
+    };
 
-        fgets(line, sizeof(line), file); curr = line; // read second line
-        while (*curr != '\n') bmask |= 1ull << (*curr++ - 'A');
-
-        fgets(line, sizeof(line), file); curr = line; // read third line
-        while (*curr != '\n') cmask |= 1ull << (*curr++ - 'A');
-
-        uint64 intersection = amask & bmask & cmask; // set intersection
-
+    uint64 amask = 0u;
+    // parse each 3 line until end of file
+    // recommended ascii table for better understanding.
+    while ((amask = parseLine())) // create first line's mask, and check line is exist 
+    {
+        uint64 intersection = amask & parseLine() & parseLine(); // create b,c masks and set intersection a & b & c
         // detect intersection index, if upper case range will be: 0 <= x <= 26. if lower case int('a' - 'A') <= x < 64
         uint64 tzcnt = _tzcnt_u64(intersection); // __builtin_ctz, returns intersection bit index, only one index is common in this 3 line
-        /* if upper case*/
-        if (tzcnt < 30) prioritySum += tzcnt + 27;
+        if (tzcnt < 30) prioritySum += tzcnt + 27; // if upper case
         else prioritySum += tzcnt - ('a' - 'A') + 1; // convert 'a'-'z' to 0-26
     }
-
     fclose(file);
-
     printf("our score: %d", prioritySum);
-    // delete[] text;
-    return prioritySum;
+	return prioritySum;   
 }
+
 struct Range {
     int begin = 0, end = 0;
     Range() { }
