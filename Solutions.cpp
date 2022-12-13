@@ -201,11 +201,12 @@ int Day3Part2()
     int prioritySum = 0;
 
     const auto parseLine = [&]() {
-        const char* curr = fgets(line, sizeof(line), file); if (!curr) return 0ull;
+        const char* curr = fgets(line, sizeof(line), file); 
         // 64bit mask's for upper-lower case characters, same as unordered_set<char> and bitset<64>
         uint64 mask = 0ull;
         // -'A' because we will map characters into 64bit.
-        while (*curr != '\n') mask |= 1ull << (*curr++ - 'A');
+        // curr >'\n' because we want alphanumeric characters and skiping end of file at the same time
+        while (*curr >'\n') mask |= 1ull << (*curr++ - 'A');
         return mask;
     };
 
