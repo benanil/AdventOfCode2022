@@ -560,12 +560,10 @@ int Day10()
 
 int ApplyOp(char operation, int a, int b)
 {
-	if (b == INT_MAX) b = a;
-	switch (operation) {
-		case '*':  return a * b; break;
-		case '+':  return a + b; break;
-	};
-	return 0;
+	// swap if operation is multiply by itself ie.(old * old).
+	// in this case we want both side of operation same number
+	if (b == INT_MAX) b = a; 
+	return operation == '+' ? a + b : a * b;
 }
 
 struct Monkey
