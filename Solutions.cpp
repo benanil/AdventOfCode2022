@@ -210,12 +210,10 @@ int Day3Part2()
 		return mask;
 	};
 
-	uint64 amask = 0u;
-	// parse each 3 line until end of file
 	// recommended ascii table for better understanding.
-	while ((amask = parseLine())) // create first line's mask, and check line is exist 
+	for (int i = 0; i < 100; ++i) // total 300 line 
 	{
-		uint64 intersection = amask & parseLine() & parseLine(); // create b,c masks and set intersection a & b & c
+		uint64 intersection = parseLine() & parseLine() & parseLine(); // create b,c masks and set intersection a & b & c
 		// detect intersection index, if upper case range will be: 0 <= x <= 26. if lower case int('a' - 'A') <= x < 64
 		uint64 tzcnt = _tzcnt_u64(intersection); // __builtin_ctz, returns intersection bit index, only one index is common in this 3 line
 		if (tzcnt < 30) prioritySum += tzcnt + 27; // if upper case
@@ -456,32 +454,32 @@ int Day8()
 			char current = text[y * 100 + x];
 			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
 		}
-		// look from right to left
-		for (char y = 98; y >= 0; --y)
-			for (char x = 99, maxSoFar = 0; x >= 0; --x) {
-				char current = text[y * 100 + x];
-				if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
-			}
-			// look from top to bottom
-			for (char x = 0; x < 100; ++x)
-				for (char y = 0, maxSoFar = 0; y < 99; ++y) {
-					char current = text[y * 100 + x];
-					if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
-				}
-				// look from bottom to top
-				for (char x = 99; x >= 0; --x)
-					for (char y = 98, maxSoFar = 0; y >= 0; --y) {
-						char current = text[y * 100 + x];
-						if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
-					}
+	// look from right to left
+	for (char y = 98; y >= 0; --y)
+		for (char x = 99, maxSoFar = 0; x >= 0; --x) {
+			char current = text[y * 100 + x];
+			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+		}
+	// look from top to bottom
+	for (char x = 0; x < 100; ++x)
+		for (char y = 0, maxSoFar = 0; y < 99; ++y) {
+			char current = text[y * 100 + x];
+			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+		}
+	// look from bottom to top
+	for (char x = 99; x >= 0; --x)
+		for (char y = 98, maxSoFar = 0; y >= 0; --y) {
+			char current = text[y * 100 + x];
+			if (current > maxSoFar) maxSoFar = current, visited[y][x] = true; else break;
+		}
 
-					int numVisible = 0;
-					for (char x = 0; x < 100; ++x) for (char y = 0; y < 99; ++y)
-						numVisible += visited[x][y];
+	int numVisible = 0;
+	for (char x = 0; x < 100; ++x) for (char y = 0; y < 99; ++y)
+		numVisible += visited[x][y];
 
-					printf("num visible: %d", numVisible);
-					free(text);
-					return 0;
+	printf("num visible: %d", numVisible);
+	free(text);
+	return 0;
 }
 #include <chrono> 
 int Day10()
