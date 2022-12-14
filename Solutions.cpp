@@ -7,8 +7,7 @@
 
 int Day1()
 {
-	char* text = Helper_ReadAllText("Assets/AOC1.txt");
-
+	char* text = ReadAllFile("Assets/AOC1.txt");
 	char* curr = text;
 	int maxElf = 0;
 	while (*curr != -1 && *curr)
@@ -36,7 +35,7 @@ int Day1()
 
 int Day2()
 {
-	char* text = Helper_ReadAllText("Assets/AOC2.txt");
+	char* text = ReadAllFile("Assets/AOC2.txt");
 	char* curr = text;
 
 	int ourScore = 0;
