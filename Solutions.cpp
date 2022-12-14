@@ -1,5 +1,3 @@
-#include <fstream>
-#include <filesystem>
 #include <stdio.h>
 #include <string.h>
 #include "Vector2.hpp"
