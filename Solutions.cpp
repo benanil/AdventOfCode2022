@@ -522,7 +522,7 @@ int Day11()
 namespace std {
 	template <> struct hash<Vector2s> {
 		unsigned long long operator()(const Vector2s& vec) const {
-			return unsigned long long(vec.x) | (unsigned long long(vec.y) << 8ull);
+			return unsigned long long(vec.x) | (unsigned long long(vec.y) << 16ull);
 		}
 	};
 }
