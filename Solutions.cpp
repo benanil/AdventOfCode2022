@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <stdio.h>
 #include <string.h>
+#include "Vector2.hpp"
 
 template<typename T> inline T Max(const T a, const T b) { return a > b ? a : b; }
 template<typename T> inline T Min(const T a, const T b) { return a < b ? a : b; }
@@ -368,56 +369,56 @@ int Day7()
 	while (fgets(line, sizeof(line), file))
 	{
 		parse_command:
-			if (line[2] == 'c') // cd command
-			{
-				if (line[5] == '.') { // cd..
-					currentFolderIdx = parentPaths[--parentIndex]; // set current path to parent path and decrease number of parent paths
-					continue;
-				}
-				uint folderHash = PathToHash(line + 5);
-				Folder& currentFolder = folders[currentFolderIdx];
-				// find path that specified with input, in subfolders
-				for (uint i = 0u; i < currentFolder.numFolders; ++i)
-				{
-					Folder& subFolder = folders[currentFolder.subFolders[i]];
-					if (subFolder.hash == folderHash)
-					{
-						parentPaths[parentIndex++] = currentFolderIdx;
-						parentPaths[parentIndex] = currentFolderIdx = currentFolder.subFolders[i];
-						break;
-					}
-				}
+		if (line[2] == 'c') // cd command
+		{
+			if (line[5] == '.') { // cd..
+				currentFolderIdx = parentPaths[--parentIndex]; // set current path to parent path and decrease number of parent paths
 				continue;
 			}
-			// else if (line[2] == 'l') // ls command
-			while (fgets(line, sizeof(line), file))
+			uint folderHash = PathToHash(line + 5);
+			Folder& currentFolder = folders[currentFolderIdx];
+			// find path that specified with input, in subfolders
+			for (uint i = 0u; i < currentFolder.numFolders; ++i)
 			{
-				if (line[0] == 'd') // new dir
+				Folder& subFolder = folders[currentFolder.subFolders[i]];
+				if (subFolder.hash == folderHash)
 				{
-					// create new folder
-					uint newFolderIdx = numFolders++;
-					folders[newFolderIdx].size = 0;
-					folders[newFolderIdx].numFolders = 0;
-					folders[newFolderIdx].hash = PathToHash(line + 4);
-
-					Folder& currentFolder = folders[currentFolderIdx];
-					currentFolder.subFolders[currentFolder.numFolders++] = newFolderIdx; // add new folder to folders array
+					parentPaths[parentIndex++] = currentFolderIdx;
+					parentPaths[parentIndex] = currentFolderIdx = currentFolder.subFolders[i];
+					break;
 				}
-				else if (IsNumber(line[0])) // new file
-				{
-					const char* curr = line;
-					uint fileSize = 0u;
-					// string to int, atoi
-					while (*curr != ' ') fileSize = fileSize * 10u + (*curr++ - '0');
-
-					// increase size of all parent folders
-					short currParent = parentIndex;
-					while (currParent >= 0) {
-						folders[parentPaths[currParent--]].size += fileSize;
-					}
-				}
-				else if (line[0] == '$') goto parse_command;
 			}
+			continue;
+		}
+		// else if (line[2] == 'l') // ls command
+		while (fgets(line, sizeof(line), file))
+		{
+			if (line[0] == 'd') // new dir
+			{
+				// create new folder
+				uint newFolderIdx = numFolders++;
+				folders[newFolderIdx].size = 0;
+				folders[newFolderIdx].numFolders = 0;
+				folders[newFolderIdx].hash = PathToHash(line + 4);
+
+				Folder& currentFolder = folders[currentFolderIdx];
+				currentFolder.subFolders[currentFolder.numFolders++] = newFolderIdx; // add new folder to folders array
+			}
+			else if (IsNumber(line[0])) // new file
+			{
+				const char* curr = line;
+				uint fileSize = 0u;
+				// string to int, atoi
+				while (*curr != ' ') fileSize = fileSize * 10u + (*curr++ - '0');
+
+				// increase size of all parent folders
+				short currParent = parentIndex;
+				while (currParent >= 0) {
+					folders[parentPaths[currParent--]].size += fileSize;
+				}
+			}
+			else if (line[0] == '$') goto parse_command;
+		}
 	}
 
 	uint result = 0u;
@@ -627,4 +628,109 @@ int Day11()
 	int monkeyBusiness = numInspected[numMonkeys - 1] * numInspected[numMonkeys - 2];
 	printf("monkeyBusiness: %d", monkeyBusiness);
 	return monkeyBusiness;
+}
+
+namespace std {
+	template <> struct hash<Vector2s> {
+		unsigned long long operator()(const Vector2s& vec) const {
+			return unsigned long long(vec.x) | (unsigned long long(vec.y) << 8ull);
+		}
+	};
+}
+
+#include <unordered_map>
+#include <stack>
+#include <queue>
+
+struct APoint
+{
+	union { float costSoFar; float distance;  };
+	union { Vector2s cameFrom; Vector2s point; };
+
+	APoint() : costSoFar(1e30f), cameFrom(0, 0) {}
+	APoint(float costSoFar, Vector2s pnt) : costSoFar(costSoFar), cameFrom(pnt) {}
+
+	bool operator < (const APoint& o) const { return distance < o.distance; }
+	bool operator > (const APoint& o) const { return distance > o.distance; }
+	bool operator == (const APoint& o) const { return point == o.point; }
+	bool operator != (const APoint& o) const { return point != o.point; }
+};
+
+using DistanceAndPoint = APoint;
+
+int Day12()
+{
+	FILE* file = fopen("Assets/AOC12.txt", "r");
+	Vector2s startPos, targetPos;
+	short numRows = 0, numColumns = 0;
+	char grid[42][167]; // for now constant size, std::string may used for bigger grids
+
+	// parse input, find num rows, num columns, start and end point 
+	while(fgets(grid[numRows], 165, file))
+	{
+		char* curr = grid[numRows]; numColumns = 0;
+		while (*curr > '\n' && !IsWhitespace(*curr))
+		{
+			if (*curr == 'S') { startPos.x  = numColumns;  startPos.y = numRows; }
+			if (*curr == 'E') { targetPos.x = numColumns; targetPos.y = numRows; }
+			curr++, numColumns++;
+		}
+		numRows++;
+	}
+	fclose(file);
+	
+	grid[startPos.y][startPos.x]   = 'a';
+	grid[targetPos.y][targetPos.x] = 'z';
+
+	// implement A* Search Algorithm
+	std::unordered_map<Vector2s, APoint> map;
+	std::priority_queue<DistanceAndPoint, std::vector<DistanceAndPoint>, std::greater<DistanceAndPoint>> queue;
+
+	queue.push(APoint(0.0f, startPos));
+	map[startPos] = APoint(0.0f, startPos);
+
+	while (!queue.empty())
+	{
+		Vector2s currentPoint = queue.top().point;
+		char height = grid[currentPoint.y][currentPoint.x];
+		const auto find = map.find(currentPoint);
+		if (currentPoint == targetPos || find == map.end()) break;
+		
+		APoint current = find->second;
+
+		queue.pop();
+		
+		auto const processNeighbor = [&](Vector2s point) 
+		{
+			if (point.x < 0 || point.y < 0 || point.x > numColumns || point.y > numRows
+				|| grid[point.y][point.x] > height + 1) return;
+
+			float newCost = current.costSoFar + 1.0f;
+			APoint& neighborPoint = map[point];
+			
+			if (neighborPoint.costSoFar == 1e30f || newCost < neighborPoint.costSoFar)
+			{
+				neighborPoint.costSoFar = newCost;
+				neighborPoint.cameFrom = currentPoint;
+				float priority = newCost + Vector2s::DistanceSq(point, targetPos);
+				queue.push(DistanceAndPoint(priority, point));
+			}
+		};
+
+		processNeighbor(currentPoint + Vector2s( 1, 0));
+		processNeighbor(currentPoint + Vector2s( 0, 1));
+		processNeighbor(currentPoint + Vector2s( 0,-1));
+		processNeighbor(currentPoint + Vector2s(-1, 0));
+	}
+		
+	Vector2s currentPoint = targetPos;
+	int result = 0;
+	while (currentPoint != startPos)
+	{
+		result++;
+		grid[currentPoint.y][currentPoint.x] = '#';
+		currentPoint = map[currentPoint].cameFrom;
+	}
+	printf("min steps: %d ", result);
+	return result;
 }
