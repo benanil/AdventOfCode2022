@@ -29,37 +29,6 @@ inline float rsqrt(float number) {
 	return y;
 }
 
-#pragma once
-#include <cmath>
-
-constexpr float PI = 3.14159265f;
-constexpr float RadToDeg = 180.0f / PI;
-constexpr float DegToRad = PI / 180.0f;
-constexpr float OneDivPI = 1.0f / PI;
-constexpr float PIDiv2 = PI / 2.0f;
-constexpr float TwoPI = PI * 2.0f;
-
-template<typename T> inline T Max(const T a, const T b) { return a > b ? a : b; }
-template<typename T> inline T Min(const T a, const T b) { return a < b ? a : b; }
-template<typename T> inline T Clamp(const T x, const T a, const T b) { return Max(a, Min(b, x)); }
-
-template<typename RealT>
-inline RealT Lerp(const RealT from, const RealT to, const RealT t) noexcept {
-	return from + (to - from) * t;
-}
-
-inline float rsqrt(float number) {
-	long i;
-	float x2, y;
-	x2 = number * 0.5F;
-	y  = number;
-	i  = * ( long * ) &y;                       // evil floating point bit level hacking
-	i  = 0x5f3759df - ( i >> 1 );               // what the fuck? 
-	y  = * ( float * ) &i;
-	y  = y * ( 1.5f - ( x2 * y * y ) );   // 1st iteration
-	return y;
-}
-
 template<typename T>
 struct Vector2
 {
