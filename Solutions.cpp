@@ -2,6 +2,7 @@
 #include <string.h>
 #include "Vector2.hpp"
 #include "Math.hpp"
+#include "Common.hpp"
 
 int Day1()
 {
