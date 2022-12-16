@@ -83,7 +83,6 @@ int main()
 	}
 
 	maxY++;
-	// Visualize(0, maxY);
 	int numSand = 0;
 	short testMax = 0;
 
@@ -92,19 +91,23 @@ int main()
 		Vector2s current(500, 0);
 		Vector2s next;
 
+		// if (world.find(current) != world.end()) break; // open for part2
+
 		while ((next = FindNext(current)) != Vector2s::Zero())
 		{
 			current = next;
 		}
 		world[current] = 'o';
 		testMax = Max(testMax, current.y);
-
-		//Visualize(Max(testMax-50, 0), testMax+1);
+		maxX = Max(current.x, maxX);
+		minX = Min(current.x, minX);
+		// Visualize(Max(testMax-50, 0), testMax+1);
 		// using namespace std::chrono_literals;
         // std::this_thread::sleep_for(500ms);  // requires std::chrono
-		if (current.y >= maxY) break;
+		if (current.y >= maxY) break; // close for part2
 		numSand++;
 	}
+	// Visualize(0, maxY+1);
 	printf("num sands: %d", numSand);
 	return numSand;
 }
