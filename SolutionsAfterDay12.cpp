@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unordered_map>
 
+// same code will run much faster with unordered_set but for visualization I've used unordered_map here 
 std::unordered_map<Vector2s, char> world;
 short minX = SHRT_MAX, maxX = SHRT_MIN, maxY = 0;
 
