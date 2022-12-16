@@ -1,6 +1,7 @@
 #include "Common.hpp"
 #include "Math"
 #include <stdio.h>
+#include <string.h>
 #include <unordered_map>
 
 std::unordered_map<Vector2s, char> world;
