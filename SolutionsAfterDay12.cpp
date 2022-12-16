@@ -92,7 +92,7 @@ int main()
 
 		//Visualize(Max(testMax-50, 0), testMax+1);
 		// using namespace std::chrono_literals;
-        // std::this_thread::sleep_for(500ms); // requires std::chrono
+        // std::this_thread::sleep_for(500ms);  // requires std::chrono
 		if (current.y >= maxY) break;
 		numSand++;
 	}
