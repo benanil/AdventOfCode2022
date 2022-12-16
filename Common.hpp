@@ -17,7 +17,29 @@ constexpr inline uint WangHash(uint s) {
 	return s;
 }
 
-int ParseInt(const char*& curr)
+template<typename T>
+inline T ParseNumber(const char*& curr)
+{
+	while (IsWhitespace(*curr)) curr++; // skip whitespace
+	T val = 0;
+    bool negative = false;
+    if (*curr == '-') curr++, negative = true;
+	while (IsNumber(*curr))
+		val = val * 10 + (*curr++ - '0');
+    if (negative) val = -val;
+    return val;
+}
+
+template<typename T>
+inline void ParseNumberRef(const char*& curr, T& val)
+{
+	while (IsWhitespace(*curr)) curr++; // skip whitespace
+	while (IsNumber(*curr))
+		val = val * 10 + (*curr++ - '0');
+}
+
+[[deprecated("use ParseNumber<T> instead.")]]
+inline int ParseInt(const char*& curr) // obsolute use ParseNumber instead
 {
 	while (IsWhitespace(*curr)) curr++; // skip whitespace
 	int instructionVal = 0;
@@ -29,16 +51,17 @@ int ParseInt(const char*& curr)
     return instructionVal;
 }
 
-bool TryParse(int& val, const char*& curr)
+template<typename T>
+inline bool TryParse(T& val, const char*& curr)
 {   // additional checks
 	if (*curr == 0 || *curr == '\n') return false;
 	while (IsWhitespace(*curr)) curr++; 
 	if (!IsNumber(*curr) && *curr != '-') return false;
-	val = ParseInt(curr);
+	val = ParseNumber<T>(curr);
 	return true;
 }
 
-bool StartsWith(const char*& curr, const char* str)
+inline bool StartsWith(const char*& curr, const char* str)
 {
 	const char* currStart = curr;
 	while (IsWhitespace(*curr)) curr++;
@@ -50,19 +73,19 @@ bool StartsWith(const char*& curr, const char* str)
 }
 
 template<typename T>
-void BubleSort(T* a, int len)
+inline void BubleSort(T* a, int len)
 {
 	for (int i = 0; i < len; ++i)
 		for (int j = i+1; j < len; ++j)
 			if (a[j] < a[i]) Swap(a[i], a[j]);
 }
 
-template<typename T> void FillN(T* arr, T val, int n)
+template<typename T> inline void FillN(T* arr, T val, int n)
 {
     for (int i = 0; i < n; ++i) arr[i] = val;
 }
 
-char* ReadAllFile(const char* fileName, int* numCharacters = 0)
+inline char* ReadAllFile(const char* fileName, int* numCharacters = 0)
 {
     FILE* fp = fopen(fileName, "r");
     if (!fp) {
