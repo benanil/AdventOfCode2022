@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "Vector2.hpp"
-#include "Common.hpp"
+#include "Math.hpp"
 
 int Day1()
 {
