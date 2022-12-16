@@ -4,6 +4,14 @@
 #include <string.h>
 #include <unordered_map>
 
+namespace std {
+	template <> struct hash<Vector2s> {
+		unsigned long long operator()(const Vector2s& vec) const {
+			return unsigned long long(vec.x) | (unsigned long long(vec.y) << 16ull);
+		}
+	};
+}
+
 // same code will run much faster with unordered_set but for visualization I've used unordered_map here 
 std::unordered_map<Vector2s, char> world;
 short minX = SHRT_MAX, maxX = SHRT_MIN, maxY = 0;
