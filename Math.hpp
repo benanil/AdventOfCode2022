@@ -32,10 +32,20 @@ inline float rsqrt(float number) {
 template<typename T>
 struct Vector2
 {
-	T x, y;
+	union
+	{
+		struct { T x, y; };
+		T arr[2];
+	};
 
+	static constexpr int NumElements = 2;
+	static constexpr uint64 ElementSize = sizeof(T);
+	using ElemType = T;
+	
 	Vector2()                   noexcept  : x(0), y(0) { }
 	constexpr Vector2(T a, T b) noexcept  : x(a), y(b) { }
+	T& operator[] (int index) { return arr[index]; }
+	T operator[] (int index) const { return arr[index]; }
 	
 	float Length()	      const { return sqrtf(LengthSquared()); }
 	float LengthSquared() const { return x * x + y * y; }
@@ -81,11 +91,18 @@ struct Vector2
 	bool operator != (Vector2 b) const { return x != b.x || y != b.y; }
 	bool operator <  (Vector2 b) const { return x < b.x && y < b.y; }
 	
+	static constexpr Vector2 Zero()     { return Vector2( 0,  0); } 
+	static constexpr Vector2 One()      { return Vector2( 1,  1); } 
 	static constexpr Vector2 Up()       { return Vector2( 0,  1); } 
 	static constexpr Vector2 Left()     { return Vector2(-1,  0); } 
 	static constexpr Vector2 Down()     { return Vector2( 0, -1); } 
 	static constexpr Vector2 Right()    { return Vector2( 1,  0); } 
 };
+
+template<typename T>
+inline Vector2<T> MinT(const Vector2<T>& a, const Vector2<T>& b) { return Vector2<T>(Min(a.x, b.x), Min(a.y, b.y)); }
+template<typename T>
+inline Vector2<T> MaxT(const Vector2<T>& a, const Vector2<T>& b) { return Vector2<T>(Max(a.x, b.x), Max(a.y, b.y)); }
 
 using Vector2f = Vector2<float>;
 using Vector2i = Vector2<int>;
