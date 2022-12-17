@@ -12,6 +12,14 @@ namespace std {
 	};
 }
 
+namespace std {
+	template <> struct hash<Vector2i> {
+		unsigned long long operator()(const Vector2i& vec) const {
+			return unsigned long long(vec.x) | (unsigned long long(vec.y) << 32ull);
+		}
+	};
+}
+
 // same code will run much faster with unordered_set but for visualization I've used unordered_map here 
 std::unordered_map<Vector2s, char> world;
 short minX = SHRT_MAX, maxX = SHRT_MIN, maxY = 0;
@@ -110,4 +118,52 @@ int main()
 	// Visualize(0, maxY+1);
 	printf("num sands: %d", numSand);
 	return numSand;
+}
+
+template<typename T>
+inline int ManhattanDistance(Vector2<T> a, Vector2<T> b)
+{
+	return abs(a.x - b.x) + abs(a.y - b.y);
+}
+
+int Day15()
+{
+	FILE* file = fopen("Assets/AOC15.txt", "r");
+	
+	char line[120];
+	std::unordered_map<Vector2i, int> sensors;
+	std::unordered_set<int> beaconYs;
+	Vector2i boundsMin = INT_MAX, boundsMax = INT_MIN;
+
+	while (fgets(line, sizeof(line), file))
+	{
+		const char* curr = line;
+		
+		Vector2i sensorPos = ParseVector<Vector2i>(curr);
+		Vector2i beaconPos = ParseVector<Vector2i>(curr);
+		Vector2i distance = ManhattanDistance(sensorPos, beaconPos);
+		sensors[sensorPos] = distance.x;
+		beaconYs.insert(beaconPos.y);
+		boundsMin = MinT(boundsMin, beaconPos - distance);
+		boundsMax = MaxT(boundsMax, beaconPos + distance);
+	}
+
+	int result = 0;
+	for (int j = boundsMin.x; j <= boundsMax.x; ++j)
+	{
+		Vector2i position = Vector2i(j, 2'000'000);
+		
+		for (auto const& [pos, dist] : sensors)
+		{
+			if (ManhattanDistance(pos, position) <= dist) { result++; break; }
+		}
+	}
+
+	for (auto const& y: beaconYs) 
+	{
+		if (y == 2'000'000) { result--; }
+	}
+
+	printf("result: %d", result);
+	return 0;
 }
