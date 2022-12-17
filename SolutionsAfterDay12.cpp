@@ -141,8 +141,8 @@ int Day15()
 		
 		Vector2i sensorPos = ParseVector<Vector2i>(curr);
 		Vector2i beaconPos = ParseVector<Vector2i>(curr);
-		Vector2i distance = ManhattanDistance(sensorPos, beaconPos);
-		sensors[sensorPos] = distance.x;
+		Vector2i distance  = Vector2i(abs(sensorPos.x - beaconPos.x), abs(sensorPos.y - beaconPos.y)); // ManhattanDistance
+		sensors[sensorPos] = distance.x + distance.y;
 		beaconYs.insert(beaconPos.y);
 		boundsMin = MinT(boundsMin, beaconPos - distance);
 		boundsMax = MaxT(boundsMax, beaconPos + distance);
