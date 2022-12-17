@@ -20,43 +20,43 @@ namespace std {
 	};
 }
 
-// same code will run much faster with unordered_set but for visualization I've used unordered_map here 
-std::unordered_map<Vector2s, char> world;
-short minX = SHRT_MAX, maxX = SHRT_MIN, maxY = 0;
-
-void UpdateBounds(Vector2s current) {
-	maxY = Max(current.y, maxY);
-	minX = Min(current.x, minX);
-	maxX = Max(current.x, maxX);
-}
-
-void Visualize(int yStart, int yEnd)
+int Day14()
 {
-	system("cls");
-	for (short i = yStart; i < yEnd +1; ++i) {
-		for (short j = minX; j <= maxX; ++j) 
-		{
-			Vector2s vec = Vector2s(j, i);
-			if (vec == Vector2s(500, 0)) printf("%c", 'X');
-			else if (world.find(vec) != world.end())
-				printf("%c", world[vec]);
-			else printf("%c", '.');
-		}
-		printf("\n");
-	}	
-}
+	// same code will run much faster with unordered_set but for visualization I've used unordered_map here 
+	std::unordered_map<Vector2s, char> world;
+	short minX = SHRT_MAX, maxX = SHRT_MIN, maxY = 0;
 
-Vector2s FindNext(Vector2s position)
-{
-	if (position.y == maxY) return Vector2s::Zero();
-	if (world.end() == world.find(position + Vector2s::Up()))  return position + Vector2s::Up();
-	if (world.end() == world.find(position + Vector2s(-1, 1))) return position + Vector2s(-1, 1);
-	if (world.end() == world.find(position + Vector2s( 1, 1))) return position + Vector2s( 1, 1);
-	return Vector2s::Zero();
-}
+	auto const UpdateBounds = [&](Vector2s current) {
+		maxY = Max(current.y, maxY);
+		minX = Min(current.x, minX);
+		maxX = Max(current.x, maxX);
+	};
 
-int main()
-{
+	auto const Visualize = [&](int yStart, int yEnd)
+	{
+		system("cls");
+		for (short i = yStart; i < yEnd +1; ++i) {
+			for (short j = minX; j <= maxX; ++j) 
+			{
+				Vector2s vec = Vector2s(j, i);
+				if (vec == Vector2s(500, 0)) printf("%c", 'X');
+				else if (world.find(vec) != world.end())
+					printf("%c", world[vec]);
+				else printf("%c", '.');
+			}
+			printf("\n");
+		}	
+	};
+
+	auto const FindNext = [&](Vector2s position)
+	{
+		if (position.y == maxY) return Vector2s::Zero();
+		if (world.end() == world.find(position + Vector2s::Up()))  return position + Vector2s::Up();
+		if (world.end() == world.find(position + Vector2s(-1, 1))) return position + Vector2s(-1, 1);
+		if (world.end() == world.find(position + Vector2s( 1, 1))) return position + Vector2s( 1, 1);
+		return Vector2s::Zero();
+	};
+	
 	{
 		FILE* file = fopen("Assets/AOC14.txt", "r");
 		char line[300];
