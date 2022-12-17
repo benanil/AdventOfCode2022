@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace std {
 	template <> struct hash<Vector2s> {
