@@ -150,21 +150,17 @@ int Day15()
 	}
 
 	int result = 0;
-	for (int j = boundsMin.x; j <= boundsMax.x; ++j)
+	// check each column if it contains # or not
+	for (int j = boundsMin.x; j <= boundsMax.x; ++j) 
 	{
-		Vector2i position = Vector2i(j, 2'000'000);
-		
+		Vector2i columnPos = Vector2i(j, 2'000'000);
+		if (beaconYs.contains(columnPos.y)) continue;
 		for (auto const& [pos, dist] : sensors)
 		{
-			if (ManhattanDistance(pos, position) <= dist) { result++; break; }
+			int columnToSensor = ManhattanDistance(pos, columnPos) 
+			if (columnToSensor > 0 && columnToSensor <= dist) { result++; break; }
 		}
 	}
-
-	for (auto const& y: beaconYs) 
-	{
-		if (y == 2'000'000) { result--; }
-	}
-
 	printf("result: %d", result);
 	return 0;
 }
