@@ -164,3 +164,112 @@ int Day15()
 	printf("result: %d", result);
 	return 0;
 }
+
+int Day17()
+{
+	char* pattern = ReadAllFile("Assets/AOC17.txt");
+	
+	const Vector2s shapes[5][5] = {
+		{ Vector2s(0, 0), Vector2s(1, 0), Vector2s(2, 0), Vector2s(3, 0) }, // ####
+		{ Vector2s(1, 0), Vector2s(0, 1), Vector2s(1, 1), Vector2s(2, 1), Vector2s(1, 2) }, // + shape
+		{ Vector2s(0, 0), Vector2s(1, 0), Vector2s(2, 0), Vector2s(2, 1), Vector2s(2, 2) }, // L shape
+		{ Vector2s(0, 0), Vector2s(0, 1), Vector2s(0, 2), Vector2s(0, 3) }, // | shape
+		{ Vector2s(0, 0), Vector2s(1, 0), Vector2s(0, 1), Vector2s(1, 1) } // box shape
+	};
+	const int shapeSizes[5] = { 4,5,5,4,4 };
+
+	Vector2s mapBounds = Vector2s(7, -1);
+	std::unordered_set<Vector2s> blocks;
+
+	auto const CheckColission = [&](const Vector2s* shape, int shapeSize, Vector2s position) 
+	{
+		bool collided = false;
+		for (int i = 0; i < shapeSize; ++i)
+		{
+			Vector2s pixel = shape[i] + position;
+			collided |= blocks.contains(pixel) | pixel.x >= 7 | pixel.x < 0 | pixel.y < 0;
+		}
+		return collided;
+	};
+
+	const char* curr = pattern;
+	int currBlock = 0, cleanHeight = 200;
+
+	for (int g = 0; g < 2022; ++g)
+	{
+		const int blockIndex = currBlock++ % 5;
+		const int shapeSize = shapeSizes[blockIndex];
+		const Vector2s* shape = shapes[blockIndex];
+		Vector2s position = Vector2s(2, mapBounds.y + 4);
+
+		auto const visualize = [&]()
+		{
+			for (int i = 0; i < shapeSize; ++i) 
+				blocks.insert(position + shape[i]);
+		
+			system("cls");
+			for (int i = Max<short>(mapBounds.y, 7)+4; i >= 0; --i)
+			{
+				for (int j = 0; j < mapBounds.x; ++j)
+				{
+					if (blocks.contains(Vector2s(j, i))) printf("#");
+					else printf(".");
+				}
+				printf("\n");
+			}
+		
+			for (int i = 0; i < shapeSize; ++i) 
+				blocks.erase(position + shape[i]);
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(300ms);
+		};
+
+		//visualize();
+		while (true)
+		{
+			short direction = *curr++ - '='; // with ascii table it is clear to understand: '<','=','>'  returns -1 or 1 depending on input axis 
+			position.x += direction;
+			if (CheckColission(shape, shapeSize, position)) position.x -= direction;
+			// 	visualize();
+			position.y -= 1; // gravity
+			if (CheckColission(shape, shapeSize, position)) { position.y++; break; }
+			// visualize();
+			if (*curr <= '\n')  curr = pattern; // if we are in the end of the pattern repeat pattern
+		}
+
+		for (int i = 0; i < shapeSizes[blockIndex]; ++i)
+		{
+			Vector2s pixel = shape[i] + position;
+			blocks.insert(pixel); // insert pixels
+			mapBounds.y = Max(mapBounds.y, pixel.y); // check new pixel is higher than top point
+		}
+		// we don't want to store all of the data that's why we are removing unnecesarry blocks that too below us
+		if (mapBounds.y > cleanHeight + 100)
+		{
+			for (auto it = std::begin(blocks); it != std::end(blocks);)
+			{
+				if (it->y < cleanHeight)
+					it = blocks.erase(it);
+				else
+					++it;
+			}
+			cleanHeight += 100;
+		}
+	}
+
+	// writing to a file is aditional, not must
+	FILE* file = fopen("Assets/17Result.txt", "w");	
+	for (int i = Max<short>(mapBounds.y, 7) + 4; i >= 0; --i)
+	{
+		for (int j = 0; j < mapBounds.x; ++j)
+		{
+			if (blocks.contains(Vector2s(j, i))) fwrite("#", 1, 1, file);
+			else fwrite(".", 1, 1, file);
+		}
+		fwrite("\n", 1, 1, file);
+	}
+	fclose(file);
+	free(pattern);
+	printf("result is: %d", mapBounds.y+1);
+	return mapBounds.y;
+}
