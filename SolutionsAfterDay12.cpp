@@ -176,7 +176,7 @@ int Day17()
 		{ Vector2s(0, 0), Vector2s(0, 1), Vector2s(0, 2), Vector2s(0, 3) }, // | shape
 		{ Vector2s(0, 0), Vector2s(1, 0), Vector2s(0, 1), Vector2s(1, 1) } // box shape
 	};
-	const int shapeSizes[5] = { 4,5,5,4,4 };
+	const int shapeSizes[5] = { 4,5,5,4,4 }; // num pixels
 
 	Vector2s mapBounds = Vector2s(7, -1);
 	std::unordered_set<Vector2s> blocks;
@@ -259,14 +259,15 @@ int Day17()
 
 	// writing to a file is aditional, not must
 	FILE* file = fopen("Assets/17Result.txt", "w");	
-	for (int i = Max<short>(mapBounds.y, 7) + 4; i >= 0; --i)
+	for (short i = Max<short>(mapBounds.y, 7) + 4; i >= 0; --i)
 	{
-		for (int j = 0; j < mapBounds.x; ++j)
+		char line[8];
+		for (short j = 0; j < 7; ++j)
 		{
-			if (blocks.contains(Vector2s(j, i))) fwrite("#", 1, 1, file);
-			else fwrite(".", 1, 1, file);
+			if (blocks.contains(Vector2s(j, i))) line[j] = '#';
+			else line[j] = '.';
 		}
-		fwrite("\n", 1, 1, file);
+		line[7] = '\n'; fwrite(line, 1, 8, file);
 	}
 	fclose(file);
 	free(pattern);
