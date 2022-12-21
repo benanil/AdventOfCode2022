@@ -274,3 +274,38 @@ int Day17()
 	printf("result is: %d", mapBounds.y+1);
 	return mapBounds.y;
 }
+
+#include <fstream>
+#include <string>
+
+int main()
+{
+	bool space[22][22][22] = {0};
+	std::vector<Vector3c> vectors;
+	// for some reason c file system didn't worked well for this file
+	std::ifstream file{ "Assets/AOC18.txt" , std::ios::in};
+	std::string line;
+
+	// Read each line from the file
+	while (std::getline(file, line))
+	{
+		const char* curr = &line[0];
+		Vector3c vec = ParseVector<Vector3c>(curr);
+		space[vec.x][vec.y][vec.z] = true;
+		vectors.push_back(vec);
+	}
+
+	int totalSurface = vectors.size() * 6; // total surface area if we count all of the edges, but we will remove intersected ones
+
+	for (Vector3c const& vec : vectors)
+	{
+		totalSurface -= space[vec.x+0][vec.y+1][vec.z+0];
+		totalSurface -= space[vec.x+0][vec.y-1][vec.z+0];
+		totalSurface -= space[vec.x+1][vec.y+0][vec.z+0];
+		totalSurface -= space[vec.x-1][vec.y+0][vec.z+0];
+		totalSurface -= space[vec.x+0][vec.y+0][vec.z+1];
+		totalSurface -= space[vec.x+0][vec.y+0][vec.z-1];
+	}
+	printf("result is: %d", totalSurface);
+	return 0;
+}
