@@ -127,41 +127,43 @@ inline int ManhattanDistance(Vector2<T> a, Vector2<T> b)
 	return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
-int Day15()
+int main()
 {
 	FILE* file = fopen("Assets/AOC15.txt", "r");
-	
+
 	char line[120];
-	int numBeaconY = 0;
 	std::unordered_map<Vector2i, int> sensors;
+	std::unordered_set<int> beaconXs;
 	Vector2i boundsMin = INT_MAX, boundsMax = INT_MIN;
 
 	while (fgets(line, sizeof(line), file))
 	{
 		const char* curr = line;
-		
+
 		Vector2i sensorPos = ParseVector<Vector2i>(curr);
 		Vector2i beaconPos = ParseVector<Vector2i>(curr);
-		Vector2i distance  = Vector2i(abs(sensorPos.x - beaconPos.x), abs(sensorPos.y - beaconPos.y)); // ManhattanDistance
+		Vector2i distance = Vector2i(abs(sensorPos.x - beaconPos.x), abs(sensorPos.y - beaconPos.y)); // ManhattanDistance
 		sensors[sensorPos] = distance.x + distance.y;
-		numBeaconY += beaconPos.y == 2'000'000;
+		beaconXs.insert(beaconPos.y == 2'000'000 ? beaconPos.x : INT_MIN);
 		boundsMin = MinT(boundsMin, beaconPos - distance);
 		boundsMax = MaxT(boundsMax, beaconPos + distance);
 	}
 
-	int result = -numBeaconY;
+	int result = 0;
 	// check each column if it contains # or not
-	for (int j = boundsMin.x; j <= boundsMax.x; ++j) 
+	for (int j = boundsMin.x; j <= boundsMax.x; ++j)
 	{
 		Vector2i columnPos = Vector2i(j, 2'000'000);
-		if (sensors.find(columnPos) != sensors.end()) continue; // if this beacon is sensor we will not count this
+		if (sensors.contains(columnPos)
+			|| beaconXs.contains(columnPos.x)) continue; // if this beacon is sensor we will not count this
+		
 		for (auto const& [pos, dist] : sensors)
 		{
-			int columnToSensor = ManhattanDistance(pos, columnPos) 
+			int columnToSensor = ManhattanDistance(pos, columnPos);
 			if (columnToSensor > 0 && columnToSensor <= dist) { result++; break; }
 		}
 	}
-	
+
 	printf("result: %d", result);
 	return 0;
 }
