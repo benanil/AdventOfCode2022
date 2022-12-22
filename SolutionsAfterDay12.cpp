@@ -281,7 +281,7 @@ int Day17()
 #include <fstream>
 #include <string>
 
-int main()
+int Day18()
 {
 	bool space[22][22][22] = {0};
 	std::vector<Vector3c> vectors;
@@ -310,5 +310,109 @@ int main()
 		totalSurface -= space[vec.x+0][vec.y+0][vec.z-1];
 	}
 	printf("result is: %d", totalSurface);
+	return 0;
+}
+
+int Day22()
+{
+	FILE* file = fopen("Assets/AOC22.txt", "r");
+	char line[5666];
+
+	std::unordered_map<Vector2i, char> map;
+	Vector2i mapBounds = 0;
+	// parse map
+	while (fgets(line, sizeof(line), file))
+	{
+		if (IsNumber(*line)) break;
+		const char* curr = line;
+		int oldMaxX = mapBounds.x;
+		mapBounds.x = 0;
+
+		while (*curr > '\n')
+		{
+			if (!IsWhitespace(*curr)) map[mapBounds] = *curr;
+			mapBounds.x++, curr++;
+		}
+		mapBounds.x = Max(mapBounds.x, oldMaxX);
+		mapBounds.y++;
+	}
+	const char* path = line; // last line of text is our path
+
+	const Vector2i directions[4] = {
+		Vector2i( 0,-1),
+		Vector2i( 1, 0), // we start from here, and depending on the input we go down or up, if we out of bounds we loop this array x % 4
+		Vector2i( 0, 1),
+		Vector2i(-1, 0)
+	};
+
+	int currentDirection = 1;
+	Vector2i currentPosition(0, 0);
+
+	auto const FindLoopPosition = [&](Vector2i position, const Vector2i& inverseDir)
+	{
+		while (map.contains(position + inverseDir))
+		{
+			position += inverseDir;
+		}
+		return map[position] == '#' ? -Vector2i::One() : position;
+	};
+
+	auto const Visualize = [&]()
+	{
+		system("cls"); // clear screen
+		for (int y = Max(currentPosition.y-30, 0); y < Min(currentPosition.y+30, mapBounds.y); ++y)
+		{
+			for (int x = 0; x < mapBounds.x; ++x)
+			{
+				Vector2i pos = Vector2i(x, y);
+				auto const find = map.find(pos);
+				if (pos == currentPosition) printf("X");
+				else if (find == map.end()) printf(" ");
+				else printf("%c", find->second);
+			}
+			printf("\n");
+		}
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(500ms);
+	};
+
+	// find startPosition
+	while (!map.contains(currentPosition)) currentPosition.x++;
+
+	while (*path > '\n')
+	{
+		int steps = ParseNumber<int>(path);
+
+		while (steps--)
+		{
+			Vector2i direction = directions[currentDirection];
+			Vector2i newPos = currentPosition + direction;
+			const auto find = map.find(newPos);
+			
+			if (find == map.end())
+			{
+				// find loop map position by going inverse of our direction
+				Vector2i loopPosition = FindLoopPosition(currentPosition, -direction);
+				if (loopPosition == -Vector2i::One()) break;
+				else { currentPosition = loopPosition; continue; }
+			}
+
+			if (find->second == '#') break;
+			
+			currentPosition = newPos;
+			// Visualize();
+		}
+
+		int direction = *path++;
+		if (direction == 'L') currentDirection = currentDirection == 0 ? 3 : currentDirection - 1;
+		if (direction == 'R') currentDirection = currentDirection == 3 ? 0 : currentDirection + 1;
+	}
+	// rotate left for getting index
+	currentDirection = currentDirection == 0 ? 3 : currentDirection - 1; // our indices start from 1 to 3
+
+	currentPosition += Vector2i::One(); // result = one indexed array
+	int result = 1000 * currentPosition.y + (4 * currentPosition.x) + currentDirection;
+
+	printf("result: %d", result);
 	return 0;
 }
