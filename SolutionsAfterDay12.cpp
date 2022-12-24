@@ -416,3 +416,181 @@ int Day22()
 	printf("result: %d", result);
 	return 0;
 }
+
+struct MapBitRow {
+	union {
+		struct { uint64 a, b, c; };
+		uint64 bits[3];
+	};
+	MapBitRow(): a(0ull), b(0ull), c(0ull) {}
+	
+	bool Get(int idx) {
+		return !!(bits[idx >> 6] & (1ull << uint64(idx & 63ull)));
+	}
+	void Set(int idx)   { bits[idx >> 6] |=   1ull << (idx & 63ull);  }
+	void Reset(int idx) { bits[idx >> 6] &= ~(1ull << (idx & 63ull)); }
+};
+
+int Day24()
+{
+	char* mapText = ReadAllFile("Assets/AOC24.txt");
+    // bitsets for determinating blizards
+	MapBitRow rightRows[21] = {}; 
+	MapBitRow leftRows [21] = {};
+	MapBitRow upRows   [21] = {};
+	MapBitRow downRows [21] = {};
+	Vector2s mapBounds{};
+	const char* currMap = mapText;
+	// skip first line
+	while (*currMap++ != '\n');
+
+	while (currMap[1] != '#')
+	{
+		mapBounds.x = 0;
+		currMap++;
+		while (*currMap != '#')
+		{
+			if (*currMap == '>') rightRows[mapBounds.y].Set(mapBounds.x);
+			if (*currMap == '<') leftRows [mapBounds.y].Set(mapBounds.x);
+			if (*currMap == '^') upRows   [mapBounds.y].Set(mapBounds.x);
+			if (*currMap == 'v') downRows [mapBounds.y].Set(mapBounds.x);
+			currMap++;
+			mapBounds.x++;
+		}
+		currMap += 2;
+		mapBounds.y++;
+	}
+	CSTIMER("speed: ");
+
+	std::unordered_set<Vector2s> players;
+	players.insert(Vector2s(0,-1));
+	players.insert(Vector2s(0, 0));
+	
+	const Vector2s endPos = mapBounds + Vector2s::Left();
+	const Vector2s startPos = Vector2s(0, -1);
+
+	auto const isBlocked = [mapBounds](Vector2s p) {
+		return (p.x < 0 || p.y < 0 || p.x >= mapBounds.x || p.y >= mapBounds.y);
+	};
+
+	auto const isFreezed = [&](const Vector2s& pos)
+	{
+		if (pos == startPos) return false;
+		return rightRows[pos.y].Get(pos.x) || leftRows[pos.y].Get(pos.x)
+			|| upRows[pos.y].Get(pos.x) || downRows[pos.y].Get(pos.x);
+	};
+
+	auto const UpdateMap = [&]()
+	{
+		for (int i = 0; i < mapBounds.y; ++i) {
+			// rotate right rows to right
+			MapBitRow& rightRow = rightRows[i];
+			bool lastWasSet = !!(rightRow.bits[0] & (1ull << 63));
+			rightRow.bits[0] <<= 1;
+			bool wasSet = !!(rightRow.bits[1] & (1ull << 63));
+			rightRow.bits[1] <<= 1;
+			rightRow.bits[1] |= lastWasSet;
+			lastWasSet = !!(rightRow.bits[2] & (1ull << (21ull))); // 21 is for getting last bit on the bitset
+			rightRow.bits[2] <<= 1;
+			rightRow.bits[2] |= wasSet;
+			rightRow.bits[0] |= lastWasSet;
+		}
+		for (int i = 0; i < mapBounds.y; ++i) {
+			// rotate left rows to left
+			MapBitRow& leftRow = leftRows[i];
+			uint64 aSet = leftRow.bits[0] & 1ull;
+			uint64 bSet = leftRow.bits[1] & 1ull;
+			uint64 cSet = leftRow.bits[2] & 1ull;
+			leftRow.bits[0] >>= 1;
+			leftRow.bits[0] |= bSet * (1ull << 63);
+			leftRow.bits[1] >>= 1;
+			leftRow.bits[1] |= cSet * (1ull << 63);
+			leftRow.bits[2] >>= 1;
+			leftRow.bits[2] |= (1ull << 21ull) * aSet;
+		}
+		// rotate down rows
+		MapBitRow tempRow = downRows[mapBounds.y - 1];
+		for (int i = mapBounds.y - 1; i > 0; i--) {
+			downRows[i] = downRows[i - 1];
+		}
+		downRows[0] = tempRow;
+        // rotate up rows
+		tempRow = upRows[0];
+		for (int i = 0; i < mapBounds.y - 1; i++) {
+			upRows[i] = upRows[i + 1];
+		}
+		upRows[mapBounds.y - 1] = tempRow;
+	};
+
+	auto const visualize = [&]()
+	{
+		system("cls");
+		for (int j = -1; j <= mapBounds.x; ++j) 
+			if (players.contains(Vector2s(j, -1))) printf("E"); 
+			else if (j != 0) printf("#"); 
+			else printf(".");
+		printf("\n");
+
+		for (int i = 0; i < mapBounds.y; ++i)
+		{
+			printf("#");
+			for (int j = 0; j < mapBounds.x; ++j)
+			{
+				bool hasRight = rightRows[i].Get(j);
+				bool hasLeft = leftRows[i].Get(j);
+				bool hasUp = upRows[i].Get(j);
+				bool hasDown = downRows[i].Get(j);
+				int count = hasRight + hasLeft + hasUp + hasDown;
+
+				Vector2s playerTest(j, i);
+				if (players.contains(playerTest)) printf("E");
+				else if (count == 0) printf(".");
+				else if (count == 1) {
+					if (hasRight) printf(">"); if (hasLeft)  printf("<"); if (hasUp) printf("^"); if (hasDown)  printf("v");
+				}
+				else {
+					printf("%d", count);
+				}
+			}
+			printf("#\n");
+		}
+		for (int j = -1; j <= mapBounds.x; ++j) if (j != mapBounds.x - 1) printf("#"); else printf(".");
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(200ms);
+	};
+	
+	int minute = 0, end = 0;
+	std::vector<Vector2s> added;
+
+	while (!end)
+	{
+		minute++;
+		UpdateMap();
+		
+		for (auto it = std::begin(players); it != std::end(players);)
+		{
+			if (isFreezed(*it))
+				it = players.erase(it);
+			else
+				++it;
+		}
+		// visualize();
+	    auto const proceedIfMoveable = [&](const Vector2s& pos)
+		{
+			if (pos == endPos) { end = 1; return; }
+			if (pos == startPos) { added.push_back(pos); return; }
+			if (!isBlocked(pos)) added.push_back(pos);
+		};
+		for (const Vector2s& p : players)
+		{
+			proceedIfMoveable(p + Vector2s::Down());
+			proceedIfMoveable(p + Vector2s::Up());
+			proceedIfMoveable(p + Vector2s::Left());
+			proceedIfMoveable(p + Vector2s::Right());
+		}
+		while (!added.empty()) players.insert(added.back()), added.pop_back();
+	}
+	end_simulation:{}
+	printf("minutes: %d", ++minute);
+	free(mapText);
+}
