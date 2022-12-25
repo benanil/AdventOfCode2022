@@ -431,6 +431,28 @@ struct MapBitRow {
 	void Reset(int idx) { bits[idx >> 6] &= ~(1ull << (idx & 63ull)); }
 };
 
+// you can use this struct in order to solve test case
+struct MiniBitRow {
+	uint32 bits;
+	MiniBitRow() : bits(0u) {}
+
+	bool Get(int idx) {
+		return !!(bits & (1u << uint32(idx & 63u)));
+	}
+	void Set(int idx) { bits |= 1u << (idx & 63u); }
+	void Reset(int idx) { bits &= ~(1u << (idx & 63u)); }
+	void RotateRight() {
+		constexpr unsigned int mask = 0b111111u;  // mask with 6 1's
+		unsigned int rotated = (bits & mask) << 1u | (bits & mask) >> (6u - 1u);  // rotate the 5 bits
+		bits = (bits & ~mask) | rotated;  // combine the rotated bits with the rest of the 
+	}
+	void RotateLeft() {
+		unsigned int mask = 0b111111u;  // mask with 6 1's
+		unsigned int rotated = (bits & mask) >> 1u | (bits & mask) << (6u - 1u);  // rotate the 6 bits
+		bits = (bits & ~mask) | rotated;  // combine the rotated bits with the rest of the integer
+	}
+};
+
 int Day24()
 {
 	char* mapText = ReadAllFile("Assets/AOC24.txt");
