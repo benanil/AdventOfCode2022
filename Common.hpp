@@ -17,6 +17,21 @@ constexpr inline uint WangHash(uint s) {
 	return s;
 }
 
+constexpr inline uint StringToHash(const char* str, uint hash = 0)
+{
+	while (*str)
+		hash = *str++ + (hash << 6u) + (hash << 16u) - hash;
+	return hash;
+}
+
+constexpr inline uint PathToHash(const char* str)
+{
+	uint hash = 0u, idx = 0u, shift = 0u;
+	while (str[idx] && idx < 4u)
+		hash |= uint(str[idx]) << shift, shift += 8u, idx++;
+	return StringToHash(str + idx, WangHash(hash));
+}
+
 template<typename T>
 inline T ParseNumber(const char*& curr)
 {
